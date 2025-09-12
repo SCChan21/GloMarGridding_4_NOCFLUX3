@@ -213,7 +213,8 @@ def assign_to_grid(
     grid : xarray.DataArray
         The grid used to define the output grid.
     fill_value : Any
-        The value to fill unassigned grid boxes.
+        The value to fill unassigned grid boxes. Must be a valid value of the
+        input `values` data type.
 
     Returns
     -------
@@ -223,8 +224,17 @@ def assign_to_grid(
     values = values.reshape(-1)
     grid_idx = grid_idx.reshape(-1)
 
+    # Check that the fill_value is valid
+    values_dtype = values.dtype
+    fill_value_dtype = type(fill_value)
+    if not np.can_cast(fill_value_dtype, values_dtype):
+        raise TypeError(
+            f"Type of input 'fill_value' ({fill_value}: {fill_value_dtype}) "
+            + f"is not valid for values data type: {values_dtype}."
+        )
+
     out_grid = xr.DataArray(
-        data=np.full(grid.shape, fill_value=fill_value, dtype=values.dtype),
+        data=np.full(grid.shape, fill_value=fill_value, dtype=values_dtype),
         coords=grid.coords,
     )
     coords_to_assign = np.unravel_index(grid_idx, out_grid.shape, "C")
