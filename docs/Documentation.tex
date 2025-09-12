@@ -64,7 +64,7 @@
 
 
 \title{GloMarGridding}
-\date{Aug 22, 2025}
+\date{Sep 12, 2025}
 \release{1.0.0}
 \author{NOC Surface Processes}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -4048,11 +4048,11 @@ Assign a vector of values to a grid, using a list of grid index values.
 \sphinxlineitem{Parameters}\begin{itemize}
 \item {}
 \sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{values}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.Series}}) \textendash{} The values to map onto the output grid.
+\sphinxstyleliteralstrong{\sphinxupquote{values}} (\sphinxstyleliteralemphasis{\sphinxupquote{numpy.ndarray}}) \textendash{} The values to map onto the output grid.
 
 \item {}
 \sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{grid\_idx}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.Series}}) \textendash{} The 1d index of the grid (assuming “C” style ravelling) for each value.
+\sphinxstyleliteralstrong{\sphinxupquote{grid\_idx}} (\sphinxstyleliteralemphasis{\sphinxupquote{numpy.ndarray}}) \textendash{} The 1d index of the grid (assuming “C” style ravelling) for each value.
 
 \item {}
 \sphinxAtStartPar
@@ -4060,7 +4060,8 @@ Assign a vector of values to a grid, using a list of grid index values.
 
 \item {}
 \sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{fill\_value}} (\sphinxstyleliteralemphasis{\sphinxupquote{Any}}) \textendash{} The value to fill unassigned grid boxes.
+\sphinxstyleliteralstrong{\sphinxupquote{fill\_value}} (\sphinxstyleliteralemphasis{\sphinxupquote{Any}}) \textendash{} The value to fill unassigned grid boxes. Must be a valid value of the
+input \sphinxtitleref{values} data type.
 
 \end{itemize}
 
