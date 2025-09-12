@@ -206,9 +206,9 @@ def assign_to_grid(
 
     Parameters
     ----------
-    values : polars.Series
+    values : numpy.ndarray
         The values to map onto the output grid.
-    grid_idx : polars.Series
+    grid_idx : numpy.ndarray
         The 1d index of the grid (assuming "C" style ravelling) for each value.
     grid : xarray.DataArray
         The grid used to define the output grid.
@@ -220,6 +220,9 @@ def assign_to_grid(
     out_grid : xarray.DataArray
         A new grid containing the values mapped onto the grid.
     """
+    values = values.reshape(-1)
+    grid_idx = grid_idx.reshape(-1)
+
     out_grid = xr.DataArray(
         data=np.full(grid.shape, fill_value=fill_value, dtype=values.dtype),
         coords=grid.coords,
