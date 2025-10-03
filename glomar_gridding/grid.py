@@ -525,6 +525,28 @@ class Grid:
         """Shape of the grid"""
         return self.grid.shape
 
+    @property
+    def grid_idx(self) -> np.ndarray:
+        """All grid indices"""
+        return np.arange(self.size)
+
+    @property
+    def coord_df(self) -> pl.DataFrame:
+        """Convert the coordinates to a DataFrame"""
+        return pl.from_records(
+            list(self.coords.to_index()),
+            schema=list(self.coord_names),
+            orient="row",
+        )
+
+    @property
+    def index_map(self) -> pl.DataFrame:
+        """Get the mapping between mask and grid indices"""
+        df = pl.DataFrame({"grid_idx": self.grid_idx})
+        if self.is_masked and hasattr(self, "mask"):
+            df = df.remove(self.mask.flatten().mask)
+        return df.with_row_index(name="mask_idx")
+
     def select_bounds(self, bounds: list[tuple[float, float]]) -> NoneType:
         """
         Filter the Grid by a set of bounds. Updates the `grid` attribute.
@@ -548,6 +570,7 @@ class Grid:
         bounds: list[tuple[float, float]] | None = None,
         add_grid_pts: bool = True,
         grid_prefix: str = "grid_",
+        apply_mask: bool = True,
     ) -> pl.DataFrame:
         """
         Align an observation dataframe to the Grid.
@@ -579,6 +602,10 @@ class Grid:
         grid_prefix : str
             Prefix to use for the new grid columns in the observational
             DataFrame.
+        apply_mask : bool
+            If the Grid is masked convert the grid index values to the masked
+            grid values. This will drop any observations whose grid position is
+            masked.
 
         Returns
         -------
@@ -633,6 +660,20 @@ class Grid:
         if sort:
             obs = obs.sort("grid_idx", descending=False)
 
+        if apply_mask and self.is_masked:
+            # Map to the masked indices (this will drop observations at masked
+            # positions)
+            obs = (
+                obs.join(
+                    self.index_map,
+                    on="grid_idx",
+                    how="inner",
+                    coalesce=True,
+                )
+                .drop("grid_idx")
+                .rename({"mask_idx": "grid_idx"})
+            )
+
         return obs
 
     def assign_values(
@@ -640,6 +681,7 @@ class Grid:
         values: np.ndarray,
         grid_idx: np.ndarray,
         fill_value: Any = np.nan,
+        apply_mask: bool = True,
     ) -> xr.DataArray:
         """
         Assign a vector of values to a grid, using a list of grid index values.
@@ -655,6 +697,9 @@ class Grid:
         fill_value : Any
             The value to fill unassigned grid boxes. Must be a valid value of
             the input `values` data type.
+        apply_mask : bool
+            The input grid_idx represents the index for the masked grid, apply
+            the mapping to the final grid index.
 
         Returns
         -------
@@ -663,6 +708,23 @@ class Grid:
         """
         values = values.reshape(-1)
         grid_idx = grid_idx.reshape(-1)
+
+        if apply_mask and self.is_masked:
+            # Un-map from mapped grid index to final grid index
+            in_idx = pl.Series("mask_idx", grid_idx).to_frame()
+            grid_idx = (
+                in_idx.join(
+                    self.index_map,
+                    on="mask_idx",
+                    how="left",
+                    coalesce=True,
+                )
+                .get_column("grid_idx")
+                .to_numpy()
+                .reshape(-1)
+            )
+            if len(grid_idx) != len(values):
+                raise ValueError("Mismatch of masked input indices to grid")
 
         # Check that the fill_value is valid
         values_dtype = values.dtype
@@ -812,11 +874,10 @@ class Grid:
             lat_2    (index_2) float64 21kB -87.5 -87.5 -87.5 ... 87.5 87.5 87.5
             lon_2    (index_2) float64 21kB -177.5 -172.5 ... 172.5 177.5
         """
-        coord_df = pl.from_records(
-            list(self.coords.to_index()),
-            schema=list(self.coord_names),
-            orient="row",
-        )
+        coord_df = self.coord_df
+
+        if self.is_masked and hasattr(self, "mask"):
+            coord_df = coord_df.remove(self.mask.flatten().mask())
 
         n = coord_df.height
         cross_coords: dict[str, Any] = {
@@ -832,3 +893,36 @@ class Grid:
             )
 
         return xr.Coordinates(cross_coords)
+
+    def add_mask(self, mask: np.ma.MaskedArray) -> NoneType:
+        """Mask the grid"""
+        if not mask.shape == self.shape:
+            raise ValueError()
+
+        self.is_masked = True
+        self.mask: np.ma.MaskedArray = mask
+
+        self.masked_grid_idx = self.index_map.get_column("grid_idx")
+        return None
+
+    def remove_mask(self) -> NoneType:
+        """Remove the mask"""
+        self.is_masked = False
+        delattr(self, "mask")
+
+        return None
+
+    def prep_covariance(
+        self,
+        covariance_matrix: np.ndarray,
+    ) -> np.ndarray:
+        """Apply the mask to a covariance matrix"""
+        if covariance_matrix.shape[0] != self.size:
+            raise ValueError("Mismatch between covariance size and grid size")
+
+        if not self.is_masked:
+            return covariance_matrix
+
+        mask_idx = self.index_map.get_column("grid_idx").to_numpy()
+
+        return covariance_matrix[mask_idx, mask_idx]
