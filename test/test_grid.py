@@ -11,7 +11,7 @@ from glomar_gridding.climatology import (
     join_climatology_by_doy,
     read_climatology,
 )
-from glomar_gridding.grid import cross_coords, grid_from_resolution
+from glomar_gridding.grid import cross_coords, grid_from_resolution, Grid
 from glomar_gridding.io import load_array
 from glomar_gridding.mask import (
     mask_array,
@@ -19,6 +19,13 @@ from glomar_gridding.mask import (
     mask_from_obs_array,
     mask_from_obs_frame,
     mask_observations,
+)
+
+
+TEST_GRID = Grid.from_resolution(
+    resolution=5,
+    bounds=[(-87.5, 90), (-177.5, 180)],
+    coord_names=["latitude", "longitude"],
 )
 
 
@@ -49,6 +56,7 @@ def test_grid():
     grid = new_grid()
 
     assert grid.shape == (36, 72)
+    assert grid.shape == TEST_GRID.shape
 
 
 def test_cross_grid():
@@ -65,6 +73,21 @@ def test_cross_grid():
         zip(crossed_grid["latitude_1"], crossed_grid["longitude_1"])
     )
     calc_cross = list(product(grid["latitude"], grid["longitude"]))
+
+    assert crossed_coords == calc_cross
+
+
+def test_cross_grid_class():
+    crossed_grid = TEST_GRID._cross_coords()
+    new_array = xr.DataArray(coords=crossed_grid)
+
+    assert new_array.shape == (2592, 2592)
+    crossed_coords = list(
+        zip(crossed_grid["latitude_1"], crossed_grid["longitude_1"])
+    )
+    calc_cross = list(
+        product(TEST_GRID.grid["latitude"], TEST_GRID.grid["longitude"])
+    )
 
     assert crossed_coords == calc_cross
 
