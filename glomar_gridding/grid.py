@@ -629,7 +629,7 @@ class Grid:
             self.select_bounds(bounds)
             obs = filter_bounds(obs, bounds, obs_coords)
 
-        grid_size = self.size
+        grid_size = self.shape
 
         grid_idx: list[list[int]] = []
         obs_to_grid_pos: list[np.ndarray] = []
@@ -877,7 +877,7 @@ class Grid:
         coord_df = self.coord_df
 
         if self.is_masked and hasattr(self, "mask"):
-            coord_df = coord_df.remove(self.mask.flatten().mask())
+            coord_df = coord_df.remove(self.mask.flatten().mask)
 
         n = coord_df.height
         cross_coords: dict[str, Any] = {
@@ -894,13 +894,16 @@ class Grid:
 
         return xr.Coordinates(cross_coords)
 
-    def add_mask(self, mask: np.ma.MaskedArray) -> NoneType:
+    def add_mask(self, mask: np.ndarray | np.ma.MaskedArray) -> NoneType:
         """Mask the grid"""
         if not mask.shape == self.shape:
             raise ValueError()
 
         self.is_masked = True
-        self.mask: np.ma.MaskedArray = mask
+        if isinstance(mask, np.ma.MaskedArray):
+            self.mask = mask
+        else:
+            self.mask = np.ma.masked_where(mask, mask)
 
         self.masked_grid_idx = self.index_map.get_column("grid_idx")
         return None
@@ -925,4 +928,4 @@ class Grid:
 
         mask_idx = self.index_map.get_column("grid_idx").to_numpy()
 
-        return covariance_matrix[mask_idx, mask_idx]
+        return covariance_matrix[mask_idx, :][:, mask_idx]
