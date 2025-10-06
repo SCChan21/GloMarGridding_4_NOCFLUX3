@@ -16,13 +16,26 @@
 
 from collections.abc import Callable, Iterable
 from types import NoneType
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import polars as pl
 import xarray as xr
 
+from glomar_gridding.variogram import (
+    ExponentialVariogram,
+    GaussianVariogram,
+    MaternVariogram,
+    SphericalVariogram,
+    variogram_to_covariance,
+)
+
 from .distances import calculate_distance_matrix, haversine_distance_from_frame
+from .kriging import (
+    SimpleKriging,
+    OrdinaryKriging,
+)
+from .stochastic import StochasticKriging
 from .utils import filter_bounds, find_nearest, select_bounds
 
 
@@ -565,6 +578,7 @@ class Grid:
     def map_observations(
         self,
         obs: pl.DataFrame,
+        obs_col: str,
         obs_coords: list[str] = ["lat", "lon"],
         sort: bool = True,
         bounds: list[tuple[float, float]] | None = None,
@@ -674,6 +688,9 @@ class Grid:
                 .rename({"mask_idx": "grid_idx"})
             )
 
+        self.obs = obs.get_column(obs_col).to_numpy()
+        self.idx = obs.get_column("grid_idx").to_numpy()
+
         return obs
 
     def assign_values(
@@ -738,7 +755,9 @@ class Grid:
 
         out_grid = xr.DataArray(
             data=np.full(
-                self.grid.shape, fill_value=fill_value, dtype=values_dtype
+                self.grid.shape,
+                fill_value=fill_value,
+                dtype=values_dtype,
             ),
             coords=self.coords,
         )
@@ -747,13 +766,13 @@ class Grid:
 
         return out_grid
 
-    def to_distance_matrix(
+    def distance_matrix(
         self,
         dist_func: Callable = haversine_distance_from_frame,
         lat_coord: str = "lat",
         lon_coord: str = "lon",
         **dist_kwargs,
-    ) -> xr.DataArray:
+    ) -> NoneType:
         """
         Calculate a distance matrix between all positions in a grid. Orientation
         of latitude and longitude will be maintained in the returned distance
@@ -830,11 +849,40 @@ class Grid:
             **dist_kwargs,
         )
 
-        return xr.DataArray(
+        self.dist = xr.DataArray(
             dist,
             coords=out_coords,
             name="dist",
         )
+
+        return None
+
+    def covariance_matrix(
+        self,
+        variogram: Literal["exponential", "gaussian", "matern", "spherical"],
+        **kwargs,
+    ):
+        """Add a covariance matrix"""
+        if not hasattr(self, "dist"):
+            raise AttributeError()
+        match variogram:
+            case "exponential":
+                self.v = ExponentialVariogram(**kwargs)
+            case "gaussian":
+                self.v = GaussianVariogram(**kwargs)
+            case "matern":
+                self.v = MaternVariogram(**kwargs)
+            case "spherical":
+                self.v = SphericalVariogram(**kwargs)
+            case _:
+                raise ValueError()
+
+        # Distance matrix is an xarray.DataArray so covariance is too.
+        self.covariance: xr.DataArray = variogram_to_covariance(  # type: ignore
+            self.v.fit(self.dist),
+            variance=self.v.psill,
+        )
+        return None
 
     def _cross_coords(self) -> xr.Coordinates:
         """
@@ -929,3 +977,48 @@ class Grid:
         mask_idx = self.index_map.get_column("grid_idx").to_numpy()
 
         return covariance_matrix[mask_idx, :][:, mask_idx]
+
+    def add_krigger(
+        self,
+        krigger: Literal["simple", "ordinary", "stochastic"],
+        error_cov: np.ndarray | None = None,
+    ) -> NoneType:
+        """Add a Kriging class object"""
+        # Handle Error Covariance shape
+        if error_cov is not None and error_cov.shape[0] == self.size:
+            error_cov = self.prep_covariance(error_cov)
+        if isinstance(error_cov, xr.DataArray):
+            error_cov = error_cov.values
+
+        # Take observations as dataframe?
+        match krigger:
+            case "simple":
+                self.krigger = SimpleKriging(
+                    covariance=self.covariance.values,
+                    idx=self.idx,
+                    obs=self.obs,
+                    error_cov=error_cov,
+                )
+            case "ordinary":
+                self.krigger = OrdinaryKriging(
+                    covariance=self.covariance.values,
+                    idx=self.idx,
+                    obs=self.obs,
+                    error_cov=error_cov,
+                )
+            case "stochastic":
+                if error_cov is None:
+                    raise ValueError(
+                        "Error Covariance is required for StochasticKriging"
+                    )
+                self.krigger = StochasticKriging(
+                    covariance=self.covariance.values,
+                    idx=self.idx,
+                    obs=self.obs,
+                    error_cov=error_cov,
+                )
+            case _:
+                raise ValueError(
+                    "Unexpected 'krigger', expected one of "
+                    + "'simple', 'ordinary', 'stochastic'"
+                )
