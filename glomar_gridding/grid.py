@@ -978,9 +978,9 @@ class Grid:
 
         return covariance_matrix[mask_idx, :][:, mask_idx]
 
-    def add_krigger(
+    def kriging(
         self,
-        krigger: Literal["simple", "ordinary", "stochastic"],
+        kriging_method: Literal["simple", "ordinary", "stochastic"],
         error_cov: np.ndarray | None = None,
     ) -> NoneType:
         """Add a Kriging class object"""
@@ -991,16 +991,16 @@ class Grid:
             error_cov = error_cov.values
 
         # Take observations as dataframe?
-        match krigger:
+        match kriging_method:
             case "simple":
-                self.krigger = SimpleKriging(
+                self.krige = SimpleKriging(
                     covariance=self.covariance.values,
                     idx=self.idx,
                     obs=self.obs,
                     error_cov=error_cov,
                 )
             case "ordinary":
-                self.krigger = OrdinaryKriging(
+                self.krige = OrdinaryKriging(
                     covariance=self.covariance.values,
                     idx=self.idx,
                     obs=self.obs,
@@ -1011,7 +1011,7 @@ class Grid:
                     raise ValueError(
                         "Error Covariance is required for StochasticKriging"
                     )
-                self.krigger = StochasticKriging(
+                self.krige = StochasticKriging(
                     covariance=self.covariance.values,
                     idx=self.idx,
                     obs=self.obs,
@@ -1019,6 +1019,6 @@ class Grid:
                 )
             case _:
                 raise ValueError(
-                    "Unexpected 'krigger', expected one of "
+                    "Unexpected 'kriging_method', expected one of "
                     + "'simple', 'ordinary', 'stochastic'"
                 )
