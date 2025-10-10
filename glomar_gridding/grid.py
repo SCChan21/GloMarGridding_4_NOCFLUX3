@@ -436,11 +436,43 @@ def cross_coords(
 
 
 class Grid:
-    """Grid Class"""
+    """
+    Grid Class.
+
+    Allows for construction of a grid to use in the Kriging process. A mask
+    can be applied to the grid with the `add_mask` method. If a mask is applied
+    then computed fields will account for the mask. This has the ability to
+    improve performance of the Kriging process as masked positions will not be
+    infilled.
+
+    The class is constructed from an instance of `xarray.Coordinates`, however
+    it can also be constructed using the `from_resolution` method, which
+    replicates the behaviour of
+    :py:func:`glomar_gridding.grid.grid_from_resolution`.
+
+    Parameters
+    ----------
+    coords : xarray.Coordinates
+        The coordinates of the output grid.
+
+    Examples
+    --------
+    >>> grid = Grid(coordinates)
+    >>> grid.add_mask(mask)
+    >>> grid.distance_matrix()  # Haversine by default
+    >>> grid.covariance("matern", psill=0.36, range=1300, nugget=0, nu=1.5)
+    >>> grid.map_observations(obs)
+    >>> grid.kriging("ordinary", error_covariance)
+    >>> masked_infilled = grid.krige.solve()
+    >>> infilled = grid.assign(masked_infilled)
+    """
 
     is_masked: bool = False
 
-    def __init__(self, coords: xr.Coordinates) -> NoneType:
+    def __init__(
+        self,
+        coords: xr.Coordinates,
+    ) -> NoneType:
         self.grid = xr.DataArray(coords=coords)
         return None
 
@@ -560,7 +592,10 @@ class Grid:
             df = df.remove(self.mask.flatten().mask)
         return df.with_row_index(name="mask_idx")
 
-    def select_bounds(self, bounds: list[tuple[float, float]]) -> NoneType:
+    def select_bounds(
+        self,
+        bounds: list[tuple[float, float]],
+    ) -> NoneType:
         """
         Filter the Grid by a set of bounds. Updates the `grid` attribute.
 
@@ -696,7 +731,7 @@ class Grid:
     def assign_values(
         self,
         values: np.ndarray,
-        grid_idx: np.ndarray,
+        grid_idx: np.ndarray | None,
         fill_value: Any = np.nan,
         apply_mask: bool = True,
     ) -> xr.DataArray:
@@ -707,10 +742,10 @@ class Grid:
         ----------
         values : numpy.ndarray
             The values to map onto the output grid.
-        grid_idx : numpy.ndarray
+        grid_idx : numpy.ndarray | None
             The 1d index of the grid (assuming "C" style ravelling) for each
-            value. grid : xarray.DataArray
-            The grid used to define the output grid.
+            value. If unset then it is assumed that the values are complete for
+            the (possibly masked) grid.
         fill_value : Any
             The value to fill unassigned grid boxes. Must be a valid value of
             the input `values` data type.
@@ -723,6 +758,7 @@ class Grid:
         out_grid : xarray.DataArray
             A new grid containing the values mapped onto the grid.
         """
+        grid_idx = grid_idx or np.arange(self.index_map.height)
         values = values.reshape(-1)
         grid_idx = grid_idx.reshape(-1)
 
@@ -778,6 +814,11 @@ class Grid:
         of latitude and longitude will be maintained in the returned distance
         matrix.
 
+        One distances between unmasked coordinates will be calculated if the
+        grid is masked.
+
+        This sets the `dist` attribute.
+
         Parameters
         ----------
         grid : xarray.DataArray
@@ -786,22 +827,13 @@ class Grid:
         dist_func : Callable
             Distance function to use to compute pairwise distances. See
             glomar_gridding.distances.calculate_distance_matrix for more
-            information.
+            information. Defaults to Haversine distances.
         lat_coord : str
             Name of the latitude coordinate in the input grid.
         lon_coord : str
             Name of the longitude coordinate in the input grid.
         **dist_kwargs
             Keyword arguments to pass to the distance function.
-
-        Returns
-        -------
-        dist : xarray.DataArray
-            A DataArray containing the distance matrix with coordinate system
-            defined with grid cell index ("index_1" and "index_2"). The
-            coordinates of the original grid are also kept as coordinates
-            related to each index (the coordinate names are suffixed with
-            "_1" or "_2" respectively).
 
         Examples
         --------
@@ -811,6 +843,7 @@ class Grid:
                 coord_names=["lat", "lon"]
             )
         >>> grid.to_distance_matrix(grid, lat_coord="lat", lon_coord="lon")
+        >>> grid.dist
         <xarray.DataArray 'dist' (index_1: 2592, index_2: 2592)> Size: 54MB
         array([[    0.        ,    24.24359308,    48.44112457, ...,
                 19463.87158499, 19461.22915012, 19459.64166305],
@@ -861,27 +894,63 @@ class Grid:
         self,
         variogram: Literal["exponential", "gaussian", "matern", "spherical"],
         **kwargs,
-    ):
-        """Add a covariance matrix"""
+    ) -> NoneType:
+        """
+        Compute a covariance matrix from the grid using the distance matrix and
+        a varigoram model, this requires the pre-computation of the distance
+        matrix attribute (`dist`). If the grid is masked then the resulting
+        `covariance` attribute (set by this method) will be filtered to align
+        with the mask.
+
+        This sets the `covariance` and `variogram` attributes.
+
+        Parameters
+        ----------
+        variogram : str
+            Lower-case name of the variogram model to use. One of "exponential",
+            "gaussian", "matern", or "spherical". The `variogram` attribute will
+            be set to an instance of the equivalent class from
+            `glomar_gridding.variogram`.
+        **kwargs
+            Keyword arguments for the variogram model.
+        """
         if not hasattr(self, "dist"):
             raise AttributeError()
         match variogram:
             case "exponential":
-                self.v = ExponentialVariogram(**kwargs)
+                self.variogram = ExponentialVariogram(**kwargs)
             case "gaussian":
-                self.v = GaussianVariogram(**kwargs)
+                self.variogram = GaussianVariogram(**kwargs)
             case "matern":
-                self.v = MaternVariogram(**kwargs)
+                self.variogram = MaternVariogram(**kwargs)
             case "spherical":
-                self.v = SphericalVariogram(**kwargs)
+                self.variogram = SphericalVariogram(**kwargs)
             case _:
                 raise ValueError()
 
         # Distance matrix is an xarray.DataArray so covariance is too.
         self.covariance: xr.DataArray = variogram_to_covariance(  # type: ignore
-            self.v.fit(self.dist),
-            variance=self.v.psill,
+            self.variogram.fit(self.dist),
+            variance=self.variogram.psill,
         )
+        return None
+
+    def set_covariance(
+        self,
+        covariance_matrix: np.ndarray | xr.DataArray,
+    ) -> NoneType:
+        """
+        Set a covariance matrix. This is automatically adjusted if the grid is
+        masked.
+
+        Sets the `covariance` attribute.
+
+        Parameters
+        ----------
+        covariance_matrix : numpy.ndarray | xarray.DataArray
+            The covariance matrix for the full (unmasked) grid.
+        """
+        self.cov = self.prep_covariance(covariance_matrix)
         return None
 
     def _cross_coords(self) -> xr.Coordinates:
@@ -932,7 +1001,7 @@ class Grid:
             "index_1": range(n),
             "index_2": range(n),
         }
-        for i in range(1, 3):
+        for i in [1, 2]:
             cross_coords.update(
                 {
                     f"{c}_{i}": (f"index_{i}", coord_df[c])
@@ -942,16 +1011,28 @@ class Grid:
 
         return xr.Coordinates(cross_coords)
 
-    def add_mask(self, mask: np.ndarray | np.ma.MaskedArray) -> NoneType:
-        """Mask the grid"""
+    def add_mask(
+        self,
+        mask: np.ndarray | np.ma.MaskedArray,
+    ) -> NoneType:
+        """
+        Add and apply a mask to the grid.
+
+        Parameters
+        ----------
+        mask : numpy.ndarray | numpy.ma.MaskedArray
+            The mask to apply, either an array of Booleans or a masked array.
+        """
         if not mask.shape == self.shape:
             raise ValueError()
 
         self.is_masked = True
         if isinstance(mask, np.ma.MaskedArray):
             self.mask = mask
-        else:
+        elif mask.dtype == np.bool:
             self.mask = np.ma.masked_where(mask, mask)
+        else:
+            raise ValueError("Mask must be a masked array or array of booleans")
 
         self.masked_grid_idx = self.index_map.get_column("grid_idx")
         return None
@@ -959,15 +1040,31 @@ class Grid:
     def remove_mask(self) -> NoneType:
         """Remove the mask"""
         self.is_masked = False
-        delattr(self, "mask")
+        if hasattr(self, "mask"):
+            delattr(self, "mask")
 
         return None
 
     def prep_covariance(
         self,
-        covariance_matrix: np.ndarray,
-    ) -> np.ndarray:
-        """Apply the mask to a covariance matrix"""
+        covariance_matrix: np.ndarray | xr.DataArray,
+    ) -> np.ndarray | xr.DataArray:
+        """
+        Apply the mask to a covariance matrix. This could be used to resize an
+        error covariance matrix ahead of masked kriging, for example.
+
+        Parameters
+        ----------
+        covariance_matrix : numpy.ndarray | xarray.DataArray
+            The covariance matrix.
+        """
+        if covariance_matrix.shape[0] == self.index_map.height:
+            print(
+                "Size of input Covariance Matrix already matches "
+                + "the (masked) grid"
+            )
+            return covariance_matrix
+
         if covariance_matrix.shape[0] != self.size:
             raise ValueError("Mismatch between covariance size and grid size")
 
@@ -981,12 +1078,32 @@ class Grid:
     def kriging(
         self,
         kriging_method: Literal["simple", "ordinary", "stochastic"],
-        error_cov: np.ndarray | None = None,
+        error_cov: np.ndarray | xr.DataArray | None = None,
     ) -> NoneType:
-        """Add a Kriging class object"""
+        """
+        Add a Kriging class object to the grid. Allowing for easy Kriging over
+        a masked grid.
+
+        This sets the `krige` attribute with a instance of a
+        :py:func:`glomar_gridding.kriging.Kriging` class object, which will have
+        all of the attributes and methods of that class.
+
+        Parameters
+        ----------
+        kriging_method : str
+            Lower-case name of the Kriging class to use. One of "simple",
+            "ordinary", or "stochastic".
+        error_cov : numpy.ndarray | xarray.DataArray | None
+            Optional error covariance matrix. This will apply a smoothing
+            effect to the observation points (as well as over the infilling).
+        """
         # Handle Error Covariance shape
         if error_cov is not None and error_cov.shape[0] == self.size:
             error_cov = self.prep_covariance(error_cov)
+        if error_cov is not None and error_cov.shape != self.covariance.shape:
+            raise ValueError(
+                "Mismatch between Covariance and Error Covariance Shapes"
+            )
         if isinstance(error_cov, xr.DataArray):
             error_cov = error_cov.values
 
