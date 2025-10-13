@@ -858,6 +858,24 @@ class Grid:
 
         return None
 
+    def set_distance_matrix(
+        self,
+        distance_matrix: np.ndarray | xr.DataArray,
+    ) -> NoneType:
+        """
+        Set a distance matrix. This is automatically adjusted if the grid is
+        masked.
+
+        Sets the `dist` attribute.
+
+        Parameters
+        ----------
+        distance_matrix : numpy.ndarray | xarray.DataArray
+            The distance matrix for the full (unmasked) grid.
+        """
+        self.dist = self.prep_covariance(distance_matrix)
+        return None
+
     def covariance_matrix(
         self,
         variogram: Literal["exponential", "gaussian", "matern", "spherical"],
