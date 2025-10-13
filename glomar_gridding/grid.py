@@ -737,7 +737,10 @@ class Grid:
         values = values.flatten()
         # grid_idx = grid_idx or np.arange(self.index_map.height)
         if grid_idx is None and len(values) != self.index_map.height:
-            raise ValueError("Something")
+            raise ValueError(
+                "length of values must match the size of the (masked) grid if "
+                + "the 'grid_idx' input is `None`."
+            )
         grid_idx = grid_idx if grid_idx is not None else np.arange(len(values))
         grid_idx = grid_idx.flatten()
 
@@ -891,7 +894,10 @@ class Grid:
             case "spherical":
                 self.variogram = SphericalVariogram(**kwargs)
             case _:
-                raise ValueError()
+                raise ValueError(
+                    "Unexpected 'variogram' input, expected one of "
+                    + " 'exponential', 'gaussian', 'matern', or 'spherical'."
+                )
 
         # Distance matrix is an xarray.DataArray so covariance is too.
         self.covariance: xr.DataArray = variogram_to_covariance(  # type: ignore
@@ -989,7 +995,7 @@ class Grid:
             The mask to apply, either an array of Booleans or a masked array.
         """
         if not mask.shape == self.shape:
-            raise ValueError()
+            raise ValueError("Mask must have the same dimensions as the grid.")
 
         self.is_masked = True
         if isinstance(mask, np.ma.MaskedArray):
