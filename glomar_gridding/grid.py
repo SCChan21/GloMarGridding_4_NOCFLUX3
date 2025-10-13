@@ -262,8 +262,6 @@ def assign_to_grid(
 def grid_to_distance_matrix(
     grid: xr.DataArray,
     dist_func: Callable = haversine_distance_from_frame,
-    lat_coord: str = "lat",
-    lon_coord: str = "lon",
     **dist_kwargs,
 ) -> xr.DataArray:
     """
@@ -279,12 +277,10 @@ def grid_to_distance_matrix(
         Distance function to use to compute pairwise distances. See
         glomar_gridding.distances.calculate_distance_matrix for more
         information.
-    lat_coord : str
-        Name of the latitude coordinate in the input grid.
-    lon_coord : str
-        Name of the longitude coordinate in the input grid.
     **dist_kwargs
-        Keyword arguments to pass to the distance function.
+        Keyword arguments to pass to the distance function. This may include
+        requirements for the name of specific coordinates, for example
+        "lat_coord" and "lon_coord".
 
     Returns
     -------
@@ -327,18 +323,13 @@ def grid_to_distance_matrix(
         lon_2    (index_2) float64 21kB -177.5 -172.5 ... 172.5 177.5
     """
     coords = grid.coords
-    out_coords = cross_coords(coords, lat_coord, lon_coord)
+    out_coords = cross_coords(coords)
 
     dist: np.ndarray = calculate_distance_matrix(
         pl.DataFrame(
-            {
-                lat_coord: out_coords[f"{lat_coord}_1"].values,
-                lon_coord: out_coords[f"{lon_coord}_1"].values,
-            }
+            {coord: out_coords[f"{coord}_1"].values for coord in coords}
         ),
         dist_func=dist_func,
-        lat_col=lat_coord,
-        lon_col=lon_coord,
         **dist_kwargs,
     )
 
@@ -351,8 +342,6 @@ def grid_to_distance_matrix(
 
 def cross_coords(
     coords: xr.Coordinates | xr.Dataset | xr.DataArray,
-    lat_coord: str,
-    lon_coord: str,
 ) -> xr.Coordinates:
     """
     Combine a set of coordinates into a cross-product, for example to construct
@@ -405,19 +394,6 @@ def cross_coords(
     """
     if isinstance(coords, (xr.DataArray, xr.Dataset)):
         coords = coords.coords
-    if len(coords) != 2:
-        raise ValueError(
-            "Input grid must have 2 indexes - "
-            + "specifying latitude and longitude, in decimal degree."
-        )
-    if lat_coord not in coords:
-        raise KeyError(
-            f"Cannot find latitude coordinate {lat_coord} in the grid."
-        )
-    if lon_coord not in coords:
-        raise KeyError(
-            f"Cannot find longitude coordinate {lon_coord} in the grid."
-        )
 
     coord_df = pl.from_records(
         list(coords.to_index()),
@@ -731,7 +707,7 @@ class Grid:
     def assign_values(
         self,
         values: np.ndarray,
-        grid_idx: np.ndarray | None,
+        grid_idx: np.ndarray | None = None,
         fill_value: Any = np.nan,
         apply_mask: bool = True,
     ) -> xr.DataArray:
@@ -758,26 +734,21 @@ class Grid:
         out_grid : xarray.DataArray
             A new grid containing the values mapped onto the grid.
         """
-        grid_idx = grid_idx or np.arange(self.index_map.height)
-        values = values.reshape(-1)
-        grid_idx = grid_idx.reshape(-1)
+        values = values.flatten()
+        # grid_idx = grid_idx or np.arange(self.index_map.height)
+        if grid_idx is None and len(values) != self.index_map.height:
+            raise ValueError("Something")
+        grid_idx = grid_idx if grid_idx is not None else np.arange(len(values))
+        grid_idx = grid_idx.flatten()
 
         if apply_mask and self.is_masked:
             # Un-map from mapped grid index to final grid index
-            in_idx = pl.Series("mask_idx", grid_idx).to_frame()
             grid_idx = (
-                in_idx.join(
-                    self.index_map,
-                    on="mask_idx",
-                    how="left",
-                    coalesce=True,
-                )
-                .get_column("grid_idx")
-                .to_numpy()
-                .reshape(-1)
-            )
-            if len(grid_idx) != len(values):
-                raise ValueError("Mismatch of masked input indices to grid")
+                self.index_map.get_column("grid_idx").to_numpy().flatten()
+            )[grid_idx]
+
+        if len(grid_idx) != len(values):
+            raise ValueError("Mismatch of masked input indices to grid")
 
         # Check that the fill_value is valid
         values_dtype = values.dtype
@@ -805,8 +776,6 @@ class Grid:
     def distance_matrix(
         self,
         dist_func: Callable = haversine_distance_from_frame,
-        lat_coord: str = "lat",
-        lon_coord: str = "lon",
         **dist_kwargs,
     ) -> NoneType:
         """
@@ -828,12 +797,10 @@ class Grid:
             Distance function to use to compute pairwise distances. See
             glomar_gridding.distances.calculate_distance_matrix for more
             information. Defaults to Haversine distances.
-        lat_coord : str
-            Name of the latitude coordinate in the input grid.
-        lon_coord : str
-            Name of the longitude coordinate in the input grid.
         **dist_kwargs
-            Keyword arguments to pass to the distance function.
+            Keyword arguments to pass to the distance function. This may include
+            requirements for the name of specific coordinates, for example
+            "lat_coord" and "lon_coord".
 
         Examples
         --------
@@ -872,13 +839,11 @@ class Grid:
         dist: np.ndarray = calculate_distance_matrix(
             pl.DataFrame(
                 {
-                    lat_coord: out_coords[f"{lat_coord}_1"].values,
-                    lon_coord: out_coords[f"{lon_coord}_1"].values,
+                    coord: out_coords[f"{coord}_1"].values
+                    for coord in self.coord_names
                 }
             ),
             dist_func=dist_func,
-            lat_col=lat_coord,
-            lon_col=lon_coord,
             **dist_kwargs,
         )
 

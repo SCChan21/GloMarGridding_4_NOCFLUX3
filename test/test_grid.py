@@ -61,11 +61,7 @@ def test_grid():
 
 def test_cross_grid():
     grid = new_grid()
-    crossed_grid = cross_coords(
-        grid.coords,
-        lat_coord="latitude",
-        lon_coord="longitude",
-    )
+    crossed_grid = cross_coords(grid.coords)
     new_array = xr.DataArray(coords=crossed_grid)
 
     assert new_array.shape == (2592, 2592)
