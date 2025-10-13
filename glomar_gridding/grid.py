@@ -901,7 +901,10 @@ class Grid:
             Keyword arguments for the variogram model.
         """
         if not hasattr(self, "dist"):
-            raise AttributeError()
+            raise AttributeError(
+                "Distance matrix must be computed or set before covariance "
+                + "matrix is computed"
+            )
         match variogram:
             case "exponential":
                 self.variogram = ExponentialVariogram(**kwargs)
@@ -914,7 +917,7 @@ class Grid:
             case _:
                 raise ValueError(
                     "Unexpected 'variogram' input, expected one of "
-                    + " 'exponential', 'gaussian', 'matern', or 'spherical'."
+                    + "'exponential', 'gaussian', 'matern', or 'spherical'."
                 )
 
         # Distance matrix is an xarray.DataArray so covariance is too.
