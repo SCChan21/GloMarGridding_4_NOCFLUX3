@@ -59,6 +59,32 @@ def test_grid():
     assert grid.shape == TEST_GRID.shape
 
 
+def test_grid_class():
+    grid = Grid.from_resolution(
+        resolution=5,
+        bounds=[(-87.5, 90), (-177.5, 180)],
+        coord_names=["latitude", "longitude"],
+    )
+    assert grid.shape == (36, 72)
+    assert grid.coord_names == ["latitude", "longitude"]
+    assert grid.index_map.height == 2592
+
+    mask = np.random.rand(*grid.shape) > 0.75
+    expected = 2592 - np.sum(mask)
+
+    grid.add_mask(mask)
+    assert grid.index_map.height == expected
+
+    grid.distance_matrix(lat_coord="latitude", lon_coord="longitude")
+    assert grid.dist.shape == (expected, expected)
+
+    vals = np.ones(expected, dtype=float)
+
+    vals_on_grid = grid.assign_values(vals, fill_value=0.0)
+
+    assert np.all(mask == (vals_on_grid == 0.0))
+
+
 def test_cross_grid():
     grid = new_grid()
     crossed_grid = cross_coords(grid.coords)
