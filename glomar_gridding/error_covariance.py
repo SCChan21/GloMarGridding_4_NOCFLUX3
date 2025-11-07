@@ -324,25 +324,38 @@ def get_weights(
 
 
 def vgm_model(
-    sill: float | np.ndarray,
+    psill: float | np.ndarray,
     space_range: float | np.ndarray,
     time_range: float | np.ndarray,
     space_dist: np.ndarray,
     time_dist: np.ndarray,
 ) -> np.ndarray:
-    """Apply the exponential variogram model.
+    """
+    Apply the spatio-temporal exponential variogram model.
 
     Compute the expected spatiotemporal covariance between observations
     given their haversine distance and time delta from each other
 
     See Chapter 2.5 in Cornes et al 2020.
 
-    Input arguments:
-    :sill: float or np.ndarray
-    :space_range: float or np.ndarray
-    :time_range: float or np.ndarray
-    :dist_space: np.ndarray, distance delta between observation
-    :dist_time: np.ndarray, time delta between observation
+    Parameters
+    ----------
+    psill : float | numpy.ndarray
+        Sill of the variogram where it will flatten out. This value is the
+        variance.
+    space_range : float | numpy.ndarray
+        Spatial length scale [km]
+    time_range : float | numpy.ndarray
+        Temporal scale [days]
+    dist_space : numpy.ndarray
+        Distance delta between observations [km]
+    dist_time : numpy.ndarray
+        Time delta between observations [us]
+
+    Returns
+    -------
+    numpy.ndarray
+        The fitted variogram model
     """
     tau_space = space_dist / space_range
     if np.all(np.logical_not(np.isnat(time_dist))):
@@ -350,10 +363,11 @@ def vgm_model(
     elif np.all(np.isnat(time_dist)):
         tau_time = time_dist / time_range
     else:
-        raise ValueError(
-            "tau_time has mixed dtype: down the 1984 memory hole; bye!"
+        raise TypeError(
+            "Input time_dist must be of inner dtype 'timedelta' or "
+            + f"'numpy.timedelta64'. Got {time_dist.dtype = }."
         )
-    return sill * np.exp(-(np.square(tau_space) + np.square(tau_time)))
+    return psill * np.exp(-(np.square(tau_space) + np.square(tau_time)))
 
 
 def weighted_sum(
@@ -439,7 +453,7 @@ def _grid_box_weighted_sum(
     dt_diff = np.abs(np.subtract.outer(dates, dates))  # np.timedelta us
 
     covar_mat = vgm_model(
-        sill=df.get_column("sill").to_numpy(),
+        psill=df.get_column("sill").to_numpy(),
         space_range=df.get_column("space_range").to_numpy(),
         time_range=df.get_column("time_range").to_numpy(),
         space_dist=dist,
