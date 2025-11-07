@@ -30,11 +30,13 @@ The functions in this module are valid for observational data where there could
 be more than 1 observation in a gridbox.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from warnings import warn
 
 import numpy as np
 import polars as pl
+
+from glomar_gridding.distances import haversine_distance_from_frame
 
 from .utils import ColumnNotFoundError, check_cols
 
@@ -319,3 +321,152 @@ def get_weights(
     return (
         weights.select(sorted(weights.columns, key=int)).to_numpy().transpose()
     )
+
+
+def vgm_model(
+    sill: float | np.ndarray,
+    space_range: float | np.ndarray,
+    time_range: float | np.ndarray,
+    space_dist: np.ndarray,
+    time_dist: np.ndarray,
+) -> np.ndarray:
+    """Apply the exponential variogram model.
+
+    Compute the expected spatiotemporal covariance between observations
+    given their haversine distance and time delta from each other
+
+    See Chapter 2.5 in Cornes et al 2020.
+
+    Input arguments:
+    :sill: float or np.ndarray
+    :space_range: float or np.ndarray
+    :time_range: float or np.ndarray
+    :dist_space: np.ndarray, distance delta between observation
+    :dist_time: np.ndarray, time delta between observation
+    """
+    tau_space = space_dist / space_range
+    if np.all(np.logical_not(np.isnat(time_dist))):
+        tau_time = (time_dist / np.timedelta64(1, "D")) / time_range
+    elif np.all(np.isnat(time_dist)):
+        tau_time = time_dist / time_range
+    else:
+        raise ValueError(
+            "tau_time has mixed dtype: down the 1984 memory hole; bye!"
+        )
+    return sill * np.exp(-(np.square(tau_space) + np.square(tau_time)))
+
+
+def weighted_sum(
+    df: pl.DataFrame,
+    grid_idx: str,
+    group_col: str,
+    error_group_correlated: str,
+    error_uncorrelated: str,
+    sill: float | Iterable[float],
+    space_range: float | Iterable[float],
+    time_range: float | Iterable[float],
+    lon_col: str = "lon",
+    lat_col: str = "lat",
+    date_col: str = "datetime",
+    bad_groups: list[str] | None = None,
+) -> np.ndarray:
+    """
+    Get the weights matrix for the weighted sum approach, accounting for
+    correlated and uncorrelated error components.
+    """
+    bad_groups = bad_groups or []
+    n_obs: int = df.height
+    n_gridboxes: int = df.get_column(grid_idx).unique().len()
+    weights: np.ndarray = np.zeros((n_gridboxes, n_obs), dtype=np.float32)
+
+    sill = pl.Series(sill) if isinstance(sill, Iterable) else sill
+    space_range = (
+        pl.Series(space_range)
+        if isinstance(space_range, Iterable)
+        else space_range
+    )
+    time_range = (
+        pl.Series(time_range)
+        if isinstance(time_range, Iterable)
+        else time_range
+    )
+
+    df = df.with_columns(
+        sill=sill,
+        space_range=space_range,
+        time_range=time_range,
+    )
+
+    df = df.with_columns(pl.col(group_col).fill_null(""))
+
+    df = df.with_row_index("_index")
+
+    sp = df.partition_by(grid_idx, include_key=True)
+    sp.sort(key=lambda x: x[grid_idx][0])
+
+    for grid_box, grid_box_frame in enumerate(sp):
+        grid_box_idx = grid_box_frame.get_column("_index").to_numpy()
+        if grid_box_frame.height == 1:
+            weights[grid_box, grid_box_idx[0]] = 1
+            continue
+        weights[grid_box, grid_box_idx] = _grid_box_weighted_sum(
+            grid_box_frame,
+            lat_col=lat_col,
+            lon_col=lon_col,
+            date_col=date_col,
+            group_col=group_col,
+            error_group_correlated=error_group_correlated,
+            error_uncorrelated=error_uncorrelated,
+            bad_groups=bad_groups,
+        )
+
+    return weights
+
+
+def _grid_box_weighted_sum(
+    df: pl.DataFrame,
+    lat_col: str,
+    lon_col: str,
+    date_col: str,
+    group_col: str,
+    error_group_correlated: str,
+    error_uncorrelated: str,
+    bad_groups: list[str],
+) -> np.ndarray:
+    n_obs = df.height
+    dist = haversine_distance_from_frame(df.select([lat_col, lon_col]))
+    dates = df.get_column(date_col).to_numpy()
+    dt_diff = np.subtract.outer(dates, dates)  # np.timedelta us
+
+    covar_mat = vgm_model(
+        sill=df.get_column("sill").to_numpy(),
+        space_range=df.get_column("space_range").to_numpy(),
+        time_range=df.get_column("time_range").to_numpy(),
+        space_dist=dist,
+        time_dist=dt_diff,
+    )
+    grid_box_groups = df.get_column(group_col)
+    rho_beta = np.equal.outer(grid_box_groups, grid_box_groups).astype(
+        np.float32
+    )
+    bad_group_idx = grid_box_groups.is_in(bad_groups)
+    rho_beta[:, bad_group_idx] *= 0.25
+
+    corr_error = df.get_column(error_group_correlated).to_numpy()
+    covar_mat += rho_beta * np.multiply.outer(corr_error, corr_error)
+
+    covar_mat += np.diag(df.get_column(error_uncorrelated).pow(2))
+
+    rhs = np.append(np.zeros(n_obs), 1)
+    covar_mat = np.vstack([covar_mat, np.ones(n_obs).T])
+    covar_mat = np.hstack([covar_mat, 1 - rhs])
+    weights = np.linalg.solve(covar_mat, rhs)[:-1]
+
+    # Apply correction to adjust for negative weights
+    # following Journel and Rao (1996), Yamamoto (2000)
+    cmin = min(weights)
+    if cmin < 0:
+        cmin = abs(cmin)
+        weights = (weights + cmin) / sum(weights + cmin)
+
+    return weights
