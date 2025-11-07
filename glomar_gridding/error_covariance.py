@@ -436,7 +436,7 @@ def _grid_box_weighted_sum(
     n_obs = df.height
     dist = haversine_distance_from_frame(df.select([lat_col, lon_col]))
     dates = df.get_column(date_col).to_numpy()
-    dt_diff = np.subtract.outer(dates, dates)  # np.timedelta us
+    dt_diff = np.abs(np.subtract.outer(dates, dates))  # np.timedelta us
 
     covar_mat = vgm_model(
         sill=df.get_column("sill").to_numpy(),
