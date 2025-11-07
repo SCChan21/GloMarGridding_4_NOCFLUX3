@@ -409,7 +409,7 @@ def weighted_sum(
         if grid_box_frame.height == 1:
             weights[grid_box, grid_box_idx[0]] = 1
             continue
-        weights[grid_box, grid_box_idx] = _grid_box_weighted_sum(
+        grid_box_weights = _grid_box_weighted_sum(
             grid_box_frame,
             lat_col=lat_col,
             lon_col=lon_col,
@@ -419,7 +419,7 @@ def weighted_sum(
             error_uncorrelated=error_uncorrelated,
             bad_groups=bad_groups,
         )
-
+        weights[grid_box, grid_box_idx] = grid_box_weights
     return weights
 
 
@@ -445,11 +445,11 @@ def _grid_box_weighted_sum(
         space_dist=dist,
         time_dist=dt_diff,
     )
-    grid_box_groups = df.get_column(group_col)
+    grid_box_groups = df.get_column(group_col).to_numpy()
     rho_beta = np.equal.outer(grid_box_groups, grid_box_groups).astype(
         np.float32
     )
-    bad_group_idx = grid_box_groups.is_in(bad_groups)
+    bad_group_idx = np.isin(grid_box_groups, bad_groups)
     rho_beta[:, bad_group_idx] *= 0.25
 
     corr_error = df.get_column(error_group_correlated).to_numpy()
@@ -457,9 +457,12 @@ def _grid_box_weighted_sum(
 
     covar_mat += np.diag(df.get_column(error_uncorrelated).pow(2))
 
+    ones_n = np.ones((1, n_obs), dtype=covar_mat.dtype)
+    zero = np.zeros((1, 1), dtype=covar_mat.dtype)
+
+    covar_mat = np.block([[covar_mat, ones_n.T], [ones_n, zero]])
+
     rhs = np.append(np.zeros(n_obs), 1)
-    covar_mat = np.vstack([covar_mat, np.ones(n_obs).T])
-    covar_mat = np.hstack([covar_mat, 1 - rhs])
     weights = np.linalg.solve(covar_mat, rhs)[:-1]
 
     # Apply correction to adjust for negative weights
