@@ -577,24 +577,11 @@ wheels = [
 ]
 
 [[package]]
-name = "geotrees"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/f6/844feaeb2bbdf3d76a70badea0d6d11c2c95e4574ec6b2998b5985e01689/geotrees-1.1.0.tar.gz", hash = "sha256:ea0487aa8a5064112f3abf5386acf71003e98f1a7a157cbd758e434d8da731ee", size = 39141, upload-time = "2025-11-03T08:43:41.636Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/07/cef73bc5f0ac17566619ac8d56422e5e72500605447d9508e0708cefd5fd/geotrees-1.1.0-py3-none-any.whl", hash = "sha256:73fc6589a1482d1123d0912d3b3cdbf9ad103deefd5cda97d83f2e8eef0b421e", size = 28341, upload-time = "2025-11-03T08:43:40.345Z" },
-]
-
-[[package]]
 name = "glomar-gridding"
 version = "1.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "geopandas" },
-    { name = "geotrees" },
     { name = "netcdf4" },
     { name = "numpy" },
     { name = "pandas" },
@@ -646,7 +633,6 @@ requires-dist = [
     { name = "cartopy", marker = "extra == 'all'" },
     { name = "cartopy", marker = "extra == 'notebooks'" },
     { name = "geopandas" },
-    { name = "geotrees", specifier = ">=1.0.0" },
     { name = "ipykernel", marker = "extra == 'all'" },
     { name = "ipykernel", marker = "extra == 'extra'" },
     { name = "matplotlib", marker = "extra == 'all'" },
