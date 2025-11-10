@@ -4,9 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "glomar_gridding"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
   "geopandas",
+  "geotrees>=1.0.0",
   "netCDF4",
   "numpy!=2.2.6",
   "pandas",
