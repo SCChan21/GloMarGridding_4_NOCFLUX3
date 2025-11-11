@@ -536,7 +536,7 @@ class Grid:
     @property
     def coord_names(self) -> list[str]:
         """Names of the coordinates"""
-        return list(self.coords.keys())  # type: ignore
+        return list(self.coords.dims)  # type: ignore
 
     @property
     def shape(self) -> tuple[int, ...]:
