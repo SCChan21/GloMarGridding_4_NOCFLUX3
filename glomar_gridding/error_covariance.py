@@ -423,7 +423,7 @@ def weighted_sum(
         if grid_box_frame.height == 1:
             weights[grid_box, grid_box_idx[0]] = 1
             continue
-        grid_box_weights = grid_box_weighted_sum(
+        grid_box_weights, *_ = grid_box_weighted_sum(
             grid_box_frame,
             lat_col=lat_col,
             lon_col=lon_col,
