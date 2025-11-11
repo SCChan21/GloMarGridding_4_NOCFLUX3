@@ -365,10 +365,6 @@ def cross_coords(
         2 and have names defined by `lat_coord` and `lon_coord` input arguments.
         The ordering of the coordinates will define the cross ordering. If an
         array is provided then the coordinates are extracted.
-    lat_coord : str
-        The name of the latitude coordinate.
-    lon_coord : str
-        The name of the longitude coordinate.
 
     Returns
     -------
@@ -383,7 +379,7 @@ def cross_coords(
             bounds=[(-87.5, 90), (-177.5, 180)],  # Lower bound is centre
             coord_names=["lat", "lon"]
         )
-    >>> cross_coords(grid.coords, lat_coord="lat", lon_coord="lon")
+    >>> cross_coords(grid.coords)
     Coordinates:
       * index_1  (index_1) int64 21kB 0 1 2 3 4 ... 2587 2588 2589 2590 2591
       * index_2  (index_2) int64 21kB 0 1 2 3 4 ... 2587 2588 2589 2590 2591
@@ -394,10 +390,11 @@ def cross_coords(
     """
     if isinstance(coords, (xr.DataArray, xr.Dataset)):
         coords = coords.coords
+    dims = coords.dims
 
     coord_df = pl.from_records(
         list(coords.to_index()),
-        schema=list(coords.keys()),  # type: ignore
+        schema=list(dims),  # type: ignore
         orient="row",
     )
 

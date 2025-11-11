@@ -98,6 +98,11 @@ def test_cross_grid():
 
     assert crossed_coords == calc_cross
 
+    grid2 = grid.transpose()
+    crossed_grid2 = cross_coords(grid2)
+    assert crossed_grid2["latitude_1"][0] == -87.5
+    assert crossed_grid2["longitude_1"][0] == -177.5
+
 
 def test_cross_grid_class():
     crossed_grid = TEST_GRID._cross_coords()
