@@ -448,7 +448,18 @@ def grid_box_weighted_sum(
     bad_groups: list[str],
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Get the weighted mean weights for a grid-box.
+    Get the weighted mean weights for a grid-box. The weights are computed using
+    uncertainty from a simple spatio-temporal exponential variogram model, the
+    correlated error covariance components (group-wise) and the uncorrelated
+    error covariance components (group-wise).
+
+    The correlated components of the error covariance are 0 between pairs of
+    records with _different_ groups, and the value from the
+    'error_group_correlated' column squared when the groups match.
+
+    A factor of 1/4 can be applied to the cross-record pairs in the computation
+    of correlated components for a subset of groupings considered "bad" - for
+    example generic ids.
 
     Parameters
     ----------
@@ -470,6 +481,7 @@ def grid_box_weighted_sum(
         Name of the column containing uncorrelated error values by group.
     bad_groups : str
         Values in the groups that required lower priority in the weightings.
+        For example, this could be records with invalid, or generic, ids.
 
     Returns
     -------
@@ -505,7 +517,9 @@ def grid_box_weighted_sum(
         np.float32
     )
     bad_group_idx = np.isin(grid_box_groups, bad_groups)
+    # Adjustments for records in groups to lower weightings (e.g. generic ids)
     rho_beta[:, bad_group_idx] *= 0.25
+    rho_beta[bad_group_idx, bad_group_idx] *= 4
 
     corr_error = grid_box_frame.get_column(error_group_correlated).to_numpy()
     correlated = rho_beta * np.multiply.outer(corr_error, corr_error)
