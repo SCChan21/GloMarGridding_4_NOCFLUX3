@@ -386,30 +386,78 @@ def weighted_sum(
 ) -> np.ndarray:
     """
     Get the weights matrix for the weighted sum approach, accounting for
-    correlated and uncorrelated error components.
+    correlated and uncorrelated error components. The weights are computed using
+    uncertainty from a simple spatio-temporal exponential variogram model, the
+    correlated error covariance components (group-wise) and the uncorrelated
+    error covariance components (group-wise).
+
+    The correlated components of the error covariance are 0 between pairs of
+    records with _different_ groups, and the value from the
+    'error_group_correlated' column squared when the groups match.
+
+    A factor of 1/4 can be applied to the cross-record pairs in the computation
+    of correlated components for a subset of groupings considered "bad" - for
+    example generic ids.
+
+    Parameters
+    ----------
+    df : polars.DataFrame
+        The observation DataFrame. Contains the "grid_idx" column which
+        indicates the gridbox for a given observation. The index of the
+        DataFrame should match the index ordering for the output weights.
+    grid_idx : str
+        Name of the column containing the gridbox index from the output grid.
+    group_col : str
+        Name of the column by which records are grouped for the purpose of
+        correlated and uncorrelated components of the error covariance
+        structure.
+    error_group_correlated : str
+        Name of the column containing correlated error values by group.
+    error_uncorrelated : str
+        Name of the column containing uncorrelated error values by group.
+    sill : str
+        The name of the column containing sill values of the simplified varigram
+        model.
+    space_range : str
+        The name of the column containing space range values for the simplified
+        varigram model. [km]
+    time_range : str
+        The name of the column containing time range values for the simplified
+        varigram model. [days]
+    lat_col : str
+        Name of the latitude column.
+    lon_col : str
+        Name of the longitude column.
+    date_col : str
+        Name of the datetime column.
+    bad_groups : str
+        Values in the groups that required lower priority in the weightings.
+        For example, this could be records with invalid, or generic, ids.
+
+    Returns
+    -------
+    weights : np.ndarray
+        A matrix containing the weights for each record in the data.
+        Retaining the order within the frame.
     """
+    required_cols = [
+        grid_idx,
+        group_col,
+        lat_col,
+        lon_col,
+        date_col,
+        error_group_correlated,
+        error_uncorrelated,
+        sill,
+        space_range,
+        time_range,
+    ]
+    check_cols(df, required_cols)
+
     bad_groups = bad_groups or []
     n_obs: int = df.height
     n_gridboxes: int = df.get_column(grid_idx).unique().len()
     weights: np.ndarray = np.zeros((n_gridboxes, n_obs), dtype=np.float32)
-
-    sill = pl.Series(sill) if isinstance(sill, Iterable) else sill
-    space_range = (
-        pl.Series(space_range)
-        if isinstance(space_range, Iterable)
-        else space_range
-    )
-    time_range = (
-        pl.Series(time_range)
-        if isinstance(time_range, Iterable)
-        else time_range
-    )
-
-    df = df.with_columns(
-        sill=sill,
-        space_range=space_range,
-        time_range=time_range,
-    )
 
     df = df.with_columns(pl.col(group_col).fill_null(""))
 
