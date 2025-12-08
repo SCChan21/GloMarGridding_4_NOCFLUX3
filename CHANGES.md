@@ -4,6 +4,23 @@
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 
+### Announcements
+
+- Now supports python 3.14 (#61).
+
+### Internal changes
+
+- Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
+  symmetric (#59).
+
+## 1.1.0 (Unreleased)
+
+Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
+
+### Announcements
+
+- Now supports python 3.14 (#61).
+
 ### Internal changes
 
 - Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
