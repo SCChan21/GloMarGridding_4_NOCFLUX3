@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 (Unreleased)
+
+Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
+
+### New features and enhancements
+
+* Can now compute ellipse covariance for 'unrotated' and 'isotropic' cases (#58)
+
 ## 1.0.1 (2025-11-11)
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
