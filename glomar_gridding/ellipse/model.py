@@ -138,7 +138,7 @@ FFORM_PARAMETERS: dict[str, dict[str, Any]] = {
         "default_bounds": [
             (0.5, 50.0),
             (0.5, 30.0),
-            (-2.0 * np.pi, 2.0 * np.pi),
+            (-0.5 * np.pi, 0.5 * np.pi),
         ],
     },
     "anisotropic_rotated_pd": {
@@ -147,7 +147,7 @@ FFORM_PARAMETERS: dict[str, dict[str, Any]] = {
         "default_bounds": [
             (deg_to_km(0.5), deg_to_km(50.0)),
             (deg_to_km(0.5), deg_to_km(30.0)),
-            (-2.0 * maths.pi, 2.0 * maths.pi),
+            (-0.5 * maths.pi, 0.5 * maths.pi),
         ],
     },
 }

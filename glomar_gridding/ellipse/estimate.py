@@ -409,7 +409,8 @@ class EllipseBuilder:
         # Handle Ly > Lx
         if ellipse.anisotropic and model_params[1] > model_params[0]:
             model_params[0], model_params[1] = model_params[1], model_params[0]
-            model_params[2] += np.pi / 2
+            if ellipse.rotated:
+                model_params[2] += np.pi / 2
 
         # Ensure theta is between -pi, pi
         if not ellipse.rotated:
