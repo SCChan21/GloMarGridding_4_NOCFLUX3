@@ -4,6 +4,10 @@
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 
+### Announcements
+
+- Now supports python 3.14 (#61).
+
 ### New features and enhancements
 
 * Can now compute ellipse covariance for 'unrotated' and 'isotropic' cases (#58)
