@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 (Unreleased)
+
+Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
+
+### Internal changes
+
+- Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
+  symmetric (#59).
+
 ## 1.0.1 (2025-11-11)
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
