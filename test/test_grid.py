@@ -35,6 +35,7 @@ def new_grid() -> xr.DataArray:
         resolution=5,
         bounds=[(-87.5, 90), (-177.5, 180)],
         coord_names=["latitude", "longitude"],
+        definition="center",
     )
 
 
@@ -50,6 +51,18 @@ def new_dataframe(n) -> pl.DataFrame:
             "var": var,
         }
     )
+
+
+def test_grid_definition():
+    grid = new_grid()
+    grid2 = grid_from_resolution(
+        resolution=5,
+        bounds=[(-90, 90), (-180, 180)],
+        coord_names=["latitude", "longitude"],
+        definition="left",
+    )
+    assert np.all(np.equal(grid.latitude, grid2.latitude))
+    assert np.all(np.equal(grid.longitude, grid2.longitude))
 
 
 def test_grid():

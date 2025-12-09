@@ -144,6 +144,7 @@ def grid_from_resolution(
     resolution: float | list[float],
     bounds: list[tuple[float, float]],
     coord_names: list[str],
+    definition: Literal["center", "left"] = "center",
 ) -> xr.DataArray:
     """
     Generate a grid from a resolution value, or a list of resolutions for
@@ -164,14 +165,22 @@ def grid_from_resolution(
         value to each of the coordinates.
     bounds : list[tuple[float, float]]
         A list of bounds of the form `(lower_bound, upper_bound)` indicating
-        the bounding box of the returned grid. Typically, one would set the
-        lower bound to be the centre of the first grid box. The upper bound is
-        an open bound (similar to usage in `range`). For example a 5 degree
-        resolution longitude range between -180, 180 could be defined with
-        bounds `(-177.5, 180)`.
+        the bounding box of the returned grid. For a grid between -180 and 180
+        degrees in Longitude, one would set the bounds in this dimension to
+        `(-180, 180)` (if using "left" for the 'definition' argument).
     coord_names : list[str]
         List of coordinate names in the same order as the bounds and
         resolution(s).
+    definition : str ("left" | "center")
+        Each grid box is defined by the centre of the box in each coordinate.
+        This argument defines whether the lower bound in each coordinate
+        direction defines the "left"-edge or the "center" of the 1st grid-box.
+
+        - "left": The lower-bound can be used to define the left-side of each
+          grid-box. The grid-box value will be the left-edge + 1/2 of resolution
+          in each direction.
+        - "center": The lower-bound can be used to define the center of each
+          grid-box. The grid-box value will be the center in each direction
 
     Returns
     -------
@@ -201,6 +210,15 @@ def grid_from_resolution(
         resolution = [resolution for _ in range(len(bounds))]
     if len(resolution) != len(coord_names) or len(bounds) != len(coord_names):
         raise ValueError("Input lists must have the same length")
+
+    if definition.lower() == "left":
+        # The lower-bound is the left-most edge of the grid, so we need to shift
+        # by 1/2 of the resolution in each direction to determine the grid-box
+        # centres.
+        bounds = [
+            (lbound + res / 2, rbound)
+            for (lbound, rbound), res in zip(bounds, resolution)
+        ]
     coords = {
         c_name: np.arange(lbound, ubound, res)
         for c_name, (lbound, ubound), res in zip(
@@ -295,8 +313,9 @@ def grid_to_distance_matrix(
     --------
     >>> grid = grid_from_resolution(
             resolution=5,
-            bounds=[(-87.5, 90), (-177.5, 180)],  # Lower bound is centre
-            coord_names=["lat", "lon"]
+            bounds=[(-90, 90), (-180, 180)],  # Lower bound is left-edge
+            coord_names=["lat", "lon"],
+            definition="left",
         )
     >>> grid_to_distance_matrix(grid, lat_coord="lat", lon_coord="lon")
     <xarray.DataArray 'dist' (index_1: 2592, index_2: 2592)> Size: 54MB
@@ -455,6 +474,7 @@ class Grid:
         resolution: float | list[float],
         bounds: list[tuple[float, float]],
         coord_names: list[str],
+        definition: Literal["center", "left"] = "center",
     ):
         """
         Generate a grid from a resolution value, or a list of resolutions for
@@ -475,14 +495,23 @@ class Grid:
             resolution value to each of the coordinates.
         bounds : list[tuple[float, float]]
             A list of bounds of the form `(lower_bound, upper_bound)` indicating
-            the bounding box of the returned grid. Typically, one would set the
-            lower bound to be the centre of the first grid box. The upper bound
-            is an open bound (similar to usage in `range`). For example a 5
-            degree resolution longitude range between -180, 180 could be defined
-            with bounds `(-177.5, 180)`.
+            the bounding box of the returned grid. For a grid between -180 and
+            180 degrees in Longitude, one would set the bounds in this dimension
+            to `(-180, 180)` (if using "left" for the 'definition' argument).
         coord_names : list[str]
             List of coordinate names in the same order as the bounds and
             resolution(s).
+        definition : str ("left" | "center")
+            Each grid box is defined by the centre of the box in each
+            coordinate. This argument defines whether the lower bound in each
+            coordinate direction defines the "left"-edge or the "center" of the
+            1st grid-box.
+
+            - "left": The lower-bound can be used to define the left-side of
+              each grid-box. The grid-box value will be the left-edge + 1/2 of
+              resolution in each direction.
+            - "center": The lower-bound can be used to define the center of each
+              grid-box. The grid-box value will be the center in each direction
 
         Returns
         -------
@@ -493,8 +522,9 @@ class Grid:
         --------
         >>> grid = Grid.from_resolution(
                 resolution=5,
-                bounds=[(-87.5, 90), (-177.5, 180)],  # Lower bound is centre
-                coord_names=["lat", "lon"]
+                bounds=[(-87.5, 90), (-177.5, 180)],  # Lower bound is center
+                coord_names=["lat", "lon"],
+                definition="center",
             )
         >>> grid.grid
         <xarray.DataArray (lat: 36, lon: 72)> Size: 21kB
@@ -515,6 +545,16 @@ class Grid:
             coord_names
         ):
             raise ValueError("Input lists must have the same length")
+
+        if definition.lower() == "left":
+            # The lower-bound is the left-most edge of the grid, so we need to
+            # shift by 1/2 of the resolution in each direction to determine the
+            # grid-box centres.
+            bounds = [
+                (lbound + res / 2, rbound)
+                for (lbound, rbound), res in zip(bounds, resolution)
+            ]
+
         coords = {
             c_name: np.arange(lbound, ubound, res)
             for c_name, (lbound, ubound), res in zip(
