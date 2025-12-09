@@ -8,6 +8,10 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 
 - Now supports python 3.14 (#61).
 
+### Bug Fixes
+
+- Fixed typo in `kriging.Kriging.constraint_mask` docstrings (#63)
+
 ## 1.0.1 (2025-11-11)
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
