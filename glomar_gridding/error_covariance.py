@@ -30,7 +30,7 @@ The functions in this module are valid for observational data where there could
 be more than 1 observation in a gridbox.
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from warnings import warn
 
 import numpy as np
@@ -323,7 +323,7 @@ def get_weights(
     )
 
 
-def vgm_model(
+def _vgm_model(
     psill: float | np.ndarray,
     space_range: float | np.ndarray,
     time_range: float | np.ndarray,
@@ -376,13 +376,13 @@ def weighted_sum(
     group_col: str,
     error_group_correlated: str,
     error_uncorrelated: str,
-    sill: float | Iterable[float],
-    space_range: float | Iterable[float],
-    time_range: float | Iterable[float],
-    lon_col: str = "lon",
     lat_col: str = "lat",
+    lon_col: str = "lon",
     date_col: str = "datetime",
-    bad_groups: list[str] | None = None,
+    sill: str = "sill",
+    space_range: str = "space_range",
+    time_range: str = "time_range",
+    bad_groups: str | list[str] | None = None,
 ) -> np.ndarray:
     """
     Get the weights matrix for the weighted sum approach, accounting for
@@ -415,15 +415,6 @@ def weighted_sum(
         Name of the column containing correlated error values by group.
     error_uncorrelated : str
         Name of the column containing uncorrelated error values by group.
-    sill : str
-        The name of the column containing sill values of the simplified varigram
-        model.
-    space_range : str
-        The name of the column containing space range values for the simplified
-        varigram model. [km]
-    time_range : str
-        The name of the column containing time range values for the simplified
-        varigram model. [days]
     lat_col : str
         Name of the latitude column.
     lon_col : str
@@ -433,6 +424,15 @@ def weighted_sum(
     bad_groups : str
         Values in the groups that required lower priority in the weightings.
         For example, this could be records with invalid, or generic, ids.
+    sill : str
+        The name of the column containing sill values of the simplified varigram
+        model.
+    space_range : str
+        The name of the column containing space range values for the simplified
+        varigram model. [km]
+    time_range : str
+        The name of the column containing time range values for the simplified
+        varigram model. [days]
 
     Returns
     -------
@@ -473,13 +473,16 @@ def weighted_sum(
             continue
         grid_box_weights, *_ = grid_box_weighted_sum(
             grid_box_frame,
-            lat_col=lat_col,
-            lon_col=lon_col,
-            date_col=date_col,
             group_col=group_col,
             error_group_correlated=error_group_correlated,
             error_uncorrelated=error_uncorrelated,
             bad_groups=bad_groups,
+            lat_col=lat_col,
+            lon_col=lon_col,
+            date_col=date_col,
+            sill=sill,
+            space_range=space_range,
+            time_range=time_range,
         )
         weights[grid_box, grid_box_idx] = grid_box_weights
     return weights
@@ -487,13 +490,16 @@ def weighted_sum(
 
 def grid_box_weighted_sum(
     grid_box_frame: pl.DataFrame,
-    lat_col: str,
-    lon_col: str,
-    date_col: str,
     group_col: str,
     error_group_correlated: str,
     error_uncorrelated: str,
-    bad_groups: list[str],
+    lat_col: str = "lat",
+    lon_col: str = "lon",
+    date_col: str = "datetime",
+    sill: str = "sill",
+    space_range: str = "space_range",
+    time_range: str = "time_range",
+    bad_groups: str | list[str] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Get the weighted mean weights for a grid-box. The weights are computed using
@@ -513,12 +519,6 @@ def grid_box_weighted_sum(
     ----------
     grid_box_frame : polars.DataFrame
         DataFrame containing the observations for all records within a grid-box.
-    lat_col : str
-        Name of the latitude column.
-    lon_col : str
-        Name of the longitude column.
-    date_col : str
-        Name of the datetime column.
     group_col : str
         Name of the column by which records are grouped for the purpose of
         correlated and uncorrelated components of the error covariance
@@ -527,7 +527,22 @@ def grid_box_weighted_sum(
         Name of the column containing correlated error values by group.
     error_uncorrelated : str
         Name of the column containing uncorrelated error values by group.
-    bad_groups : str
+    lat_col : str
+        Name of the latitude column.
+    lon_col : str
+        Name of the longitude column.
+    date_col : str
+        Name of the datetime column.
+    sill : str
+        The name of the column containing sill values of the simplified varigram
+        model.
+    space_range : str
+        The name of the column containing space range values for the simplified
+        varigram model. [km]
+    time_range : str
+        The name of the column containing time range values for the simplified
+        varigram model. [days]
+    bad_groups : str | list[str] | None
         Values in the groups that required lower priority in the weightings.
         For example, this could be records with invalid, or generic, ids.
 
@@ -553,10 +568,10 @@ def grid_box_weighted_sum(
     dates = grid_box_frame.get_column(date_col).to_numpy()
     dt_diff = np.abs(np.subtract.outer(dates, dates))  # np.timedelta us
 
-    vario = covar_mat = vgm_model(
-        psill=grid_box_frame.get_column("sill").to_numpy(),
-        space_range=grid_box_frame.get_column("space_range").to_numpy(),
-        time_range=grid_box_frame.get_column("time_range").to_numpy(),
+    vario = covar_mat = _vgm_model(
+        psill=grid_box_frame.get_column(sill).to_numpy(),
+        space_range=grid_box_frame.get_column(space_range).to_numpy(),
+        time_range=grid_box_frame.get_column(time_range).to_numpy(),
         space_dist=dist,
         time_dist=dt_diff,
     )
@@ -564,10 +579,12 @@ def grid_box_weighted_sum(
     rho_beta = np.equal.outer(grid_box_groups, grid_box_groups).astype(
         np.float32
     )
-    bad_group_idx = np.isin(grid_box_groups, bad_groups)
-    # Adjustments for records in groups to lower weightings (e.g. generic ids)
-    rho_beta[:, bad_group_idx] *= 0.25
-    rho_beta[bad_group_idx, bad_group_idx] *= 4
+    if bad_groups is not None:
+        # Adjustments for records in groups to lower weightings
+        # (e.g. generic ids)
+        bad_group_idx = np.isin(grid_box_groups, bad_groups)
+        rho_beta[:, bad_group_idx] *= 0.25
+        rho_beta[bad_group_idx, bad_group_idx] *= 4
 
     corr_error = grid_box_frame.get_column(error_group_correlated).to_numpy()
     correlated = rho_beta * np.multiply.outer(corr_error, corr_error)
