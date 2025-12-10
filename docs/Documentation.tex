@@ -64,7 +64,7 @@
 
 
 \title{GloMarGridding}
-\date{Nov 10, 2025}
+\date{Dec 10, 2025}
 \release{1.0.1}
 \author{NOC Surface Processes}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -456,7 +456,7 @@ all positions \sphinxhyphen{} each position has the same influence over a fixed 
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.grid.}}\sphinxbfcode{\sphinxupquote{grid\_from\_resolution}}}
-{\sphinxparam{\DUrole{n}{resolution}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}}\sphinxparamcomma \sphinxparam{\DUrole{n}{coord\_names}}}
+{\sphinxparam{\DUrole{n}{resolution}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}}\sphinxparamcomma \sphinxparam{\DUrole{n}{coord\_names}}\sphinxparamcomma \sphinxparam{\DUrole{n}{definition}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}center\textquotesingle{}}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -482,16 +482,36 @@ value to each of the coordinates.
 \item {}
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{bounds}} (\sphinxstyleliteralemphasis{\sphinxupquote{list}}\sphinxstyleliteralemphasis{\sphinxupquote{{[}}}\sphinxstyleliteralemphasis{\sphinxupquote{tuple}}\sphinxstyleliteralemphasis{\sphinxupquote{{[}}}\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{, }}\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{{]}}}\sphinxstyleliteralemphasis{\sphinxupquote{{]}}}) \textendash{} A list of bounds of the form \sphinxtitleref{(lower\_bound, upper\_bound)} indicating
-the bounding box of the returned grid. Typically, one would set the
-lower bound to be the centre of the first grid box. The upper bound is
-an open bound (similar to usage in \sphinxtitleref{range}). For example a 5 degree
-resolution longitude range between \sphinxhyphen{}180, 180 could be defined with
-bounds \sphinxtitleref{(\sphinxhyphen{}177.5, 180)}.
+the bounding box of the returned grid. For a grid between \sphinxhyphen{}180 and 180
+degrees in Longitude, one would set the bounds in this dimension to
+\sphinxtitleref{(\sphinxhyphen{}180, 180)} (if using “left” for the ‘definition’ argument).
 
 \item {}
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{coord\_names}} (\sphinxstyleliteralemphasis{\sphinxupquote{list}}\sphinxstyleliteralemphasis{\sphinxupquote{{[}}}\sphinxstyleliteralemphasis{\sphinxupquote{str}}\sphinxstyleliteralemphasis{\sphinxupquote{{]}}}) \textendash{} List of coordinate names in the same order as the bounds and
 resolution(s).
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{definition}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}\sphinxstyleliteralemphasis{\sphinxupquote{ (}}\sphinxstyleliteralemphasis{\sphinxupquote{"left"}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{"center"}}\sphinxstyleliteralemphasis{\sphinxupquote{)}}) \textendash{}
+\sphinxAtStartPar
+Each grid box is defined by the centre of the box in each coordinate.
+This argument defines whether the lower bound in each coordinate
+direction defines the “left”\sphinxhyphen{}edge or the “center” of the 1st grid\sphinxhyphen{}box.
+\begin{itemize}
+\item {}
+\sphinxAtStartPar
+”left”: The lower\sphinxhyphen{}bound can be used to define the left\sphinxhyphen{}side of each
+grid\sphinxhyphen{}box. The grid\sphinxhyphen{}box value will be the left\sphinxhyphen{}edge + 1/2 of resolution
+in each direction.
+
+\item {}
+\sphinxAtStartPar
+”center”: The lower\sphinxhyphen{}bound can be used to define the center of each
+grid\sphinxhyphen{}box. The grid\sphinxhyphen{}box value will be the center in each direction
+
+\end{itemize}
+
 
 \end{itemize}
 
@@ -534,7 +554,7 @@ xarray.DataArray:
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.grid.}}\sphinxbfcode{\sphinxupquote{grid\_to\_distance\_matrix}}}
-{\sphinxparam{\DUrole{n}{grid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{dist\_func=\textless{}function haversine\_distance\_from\_frame\textgreater{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_coord=\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_coord=\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{**dist\_kwargs}}}
+{\sphinxparam{\DUrole{n}{grid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{dist\_func=\textless{}function haversine\_distance\_from\_frame\textgreater{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{**dist\_kwargs}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -555,15 +575,9 @@ information.
 
 \item {}
 \sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{lat\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the latitude coordinate in the input grid.
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{lon\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the longitude coordinate in the input grid.
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{**dist\_kwargs}} \textendash{} Keyword arguments to pass to the distance function.
+\sphinxstyleliteralstrong{\sphinxupquote{**dist\_kwargs}} \textendash{} Keyword arguments to pass to the distance function. This may include
+requirements for the name of specific coordinates, for example
+“lat\_coord” and “lon\_coord”.
 
 \end{itemize}
 
@@ -585,8 +599,9 @@ xarray.DataArray
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{grid} \PYG{o}{=} \PYG{n}{grid\PYGZus{}from\PYGZus{}resolution}\PYG{p}{(}
 \PYG{g+go}{        resolution=5,}
-\PYG{g+go}{        bounds=[(\PYGZhy{}87.5, 90), (\PYGZhy{}177.5, 180)],  \PYGZsh{} Lower bound is centre}
-\PYG{g+go}{        coord\PYGZus{}names=[\PYGZdq{}lat\PYGZdq{}, \PYGZdq{}lon\PYGZdq{}]}
+\PYG{g+go}{        bounds=[(\PYGZhy{}90, 90), (\PYGZhy{}180, 180)],  \PYGZsh{} Lower bound is left\PYGZhy{}edge}
+\PYG{g+go}{        coord\PYGZus{}names=[\PYGZdq{}lat\PYGZdq{}, \PYGZdq{}lon\PYGZdq{}],}
+\PYG{g+go}{        definition=\PYGZdq{}left\PYGZdq{},}
 \PYG{g+go}{    )}
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{grid\PYGZus{}to\PYGZus{}distance\PYGZus{}matrix}\PYG{p}{(}\PYG{n}{grid}\PYG{p}{,} \PYG{n}{lat\PYGZus{}coord}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{lat}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{lon\PYGZus{}coord}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{lon}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
 \PYG{g+go}{\PYGZlt{}xarray.DataArray \PYGZsq{}dist\PYGZsq{} (index\PYGZus{}1: 2592, index\PYGZus{}2: 2592)\PYGZgt{} Size: 54MB}
@@ -1438,7 +1453,7 @@ Calculate covariance and correlation matrices.
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxbfcode{\sphinxupquote{compute\_params}}}
-{\sphinxparam{\DUrole{n}{default\_value}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.0001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{return\_r2}\DUrole{o}{=}\DUrole{default_value}{False}}}
+{\sphinxparam{\DUrole{n}{default\_value}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.0001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -1618,10 +1633,6 @@ all possible training data. Data that falls within the min and max
 distance values using the selected distance method are selected as
 training data.
 
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{return\_r2}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Add R2 / Correlation Matrix to output fields.
-
 \end{itemize}
 
 \sphinxlineitem{Returns}
@@ -1649,7 +1660,7 @@ upper boundaries
 \item {}
 \sphinxAtStartPar
 9: fail, probably due to running out of maxiter (see
-scipy.optimize.minimize kwargs “options”)
+scipy.optimize.minimize kwargs “options)”
 
 \end{itemize}
 
@@ -1691,7 +1702,7 @@ that corresponds to a specific lat lon
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxbfcode{\sphinxupquote{fit\_ellipse\_model}}}
-{\sphinxparam{\DUrole{n}{xy\_point}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{return\_r2}\DUrole{o}{=}\DUrole{default_value}{False}}}
+{\sphinxparam{\DUrole{n}{xy\_point}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -1853,10 +1864,6 @@ Euclidean distance of degree difference between each position and
 all possible training data. Data that falls within the min and max
 distance values using the selected distance method are selected as
 training data.
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{return\_r2}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Add R2 / Correlation Matrix to output fields.
 
 \end{itemize}
 
@@ -4089,6 +4096,134 @@ xarray.DataArray
 \sphinxstepscope
 
 
+\chapter{Grid Class}
+\label{\detokenize{grid:grid-class}}\label{\detokenize{grid::doc}}
+\sphinxAtStartPar
+An alternative workflow is to use the \sphinxtitleref{Grid} class added in version 1.1.0. The \sphinxtitleref{Grid} class can be
+used to run the full Kriging process from defining an output grid to interpolating the observational
+data.
+
+\sphinxAtStartPar
+This class allows for easy masking of positions, so that masked positions are not infilled.
+
+\sphinxAtStartPar
+A new notebook was added (“Mask\_example.ipynb”) to demonstrate the full process.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{glomar\PYGZus{}gridding}\PYG{n+nn}{.}\PYG{n+nn}{grid}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{Grid}
+
+\PYG{c+c1}{\PYGZsh{} Initialise, like with grid\PYGZus{}from\PYGZus{}resolution}
+\PYG{n}{grid} \PYG{o}{=} \PYG{n}{Grid}\PYG{o}{.}\PYG{n}{from\PYGZus{}resolution}\PYG{p}{(}
+    \PYG{n}{resolution}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{,}
+    \PYG{n}{bounds}\PYG{o}{=}\PYG{p}{[}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{90}\PYG{p}{,} \PYG{l+m+mi}{90}\PYG{p}{)}\PYG{p}{,} \PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{180}\PYG{p}{,} \PYG{l+m+mi}{180}\PYG{p}{)}\PYG{p}{]}\PYG{p}{,}
+    \PYG{n}{coord\PYGZus{}names}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{latitude}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{longitude}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{]}\PYG{p}{,}
+    \PYG{n}{definition}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{left}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Can now easily add a mask and only used unmasked positions on the grid}
+\PYG{n}{mask} \PYG{o}{=} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{n}{grid}\PYG{o}{.}\PYG{n}{add\PYGZus{}mask}\PYG{p}{(}\PYG{n}{mask}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Add distance matrix and covariance matrix}
+\PYG{n}{grid}\PYG{o}{.}\PYG{n}{distance\PYGZus{}matrix}\PYG{p}{(}\PYG{p}{)}
+\PYG{n}{grid}\PYG{o}{.}\PYG{n}{covariance\PYGZus{}matrix}\PYG{p}{(}
+    \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{matern}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+    \PYG{n+nb}{range}\PYG{o}{=}\PYG{l+m+mi}{1300}\PYG{p}{,}
+    \PYG{n}{psill}\PYG{o}{=}\PYG{l+m+mf}{1.2}\PYG{p}{,}
+    \PYG{n}{nu}\PYG{o}{=}\PYG{l+m+mf}{1.5}\PYG{p}{,}
+    \PYG{n}{nugget}\PYG{o}{=}\PYG{l+m+mf}{0.0}\PYG{p}{,}
+    \PYG{n}{method}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{sklearn}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}
+\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Add observations}
+\PYG{n}{obs} \PYG{o}{=} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{n}{grid}\PYG{o}{.}\PYG{n}{map\PYGZus{}observations}\PYG{p}{(}\PYG{n}{obs}\PYG{p}{,} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Can ensure an external error covariance matrix is aligned to the grid}
+\PYG{n}{error\PYGZus{}cov} \PYG{o}{=} \PYG{o}{.}\PYG{o}{.}\PYG{o}{.}
+\PYG{n}{error\PYGZus{}cov} \PYG{o}{=} \PYG{n}{grid}\PYG{o}{.}\PYG{n}{prep\PYGZus{}covariance}\PYG{p}{(}\PYG{n}{error\PYGZus{}cov}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Perform Kriging}
+\PYG{n}{grid}\PYG{o}{.}\PYG{n}{kriging}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{ordinary}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{error\PYGZus{}cov}\PYG{p}{)}
+\end{sphinxVerbatim}
+\index{ExponentialVariogram (class in glomar\_gridding.variogram)@\spxentry{ExponentialVariogram}\spxextra{class in glomar\_gridding.variogram}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{grid:glomar_gridding.variogram.ExponentialVariogram}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\DUrole{k}{class}\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{glomar\_gridding.variogram.}}\sphinxbfcode{\sphinxupquote{ExponentialVariogram}}}
+{\sphinxparam{\DUrole{n}{psill}}\sphinxparamcomma \sphinxparam{\DUrole{n}{nugget}}\sphinxparamcomma \sphinxparam{\DUrole{n}{range}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{effective\_range}\DUrole{o}{=}\DUrole{default_value}{None}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Exponential Model
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{psill}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{np.ndarray}}) \textendash{} Sill of the variogram where it will flatten out. Values in the variogram
+will not exceed psill + nugget. This value is the variance.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{nugget}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{np.ndarray}}) \textendash{} The value of the independent variable at distance 0
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{effective\_range}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{np.ndarray}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{None}}) \textendash{} Effective Range, this is the distance where 95\% of the sill are
+exceeded. This is not the range parameter, which is defined as r/3.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{range}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{ndarray}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{None}}) \textendash{} The range parameter. One of range and effective\_range must be set. If
+range is not set, it will be computed from effective\_range.
+
+\end{itemize}
+
+\end{description}\end{quote}
+\index{fit() (glomar\_gridding.variogram.ExponentialVariogram method)@\spxentry{fit()}\spxextra{glomar\_gridding.variogram.ExponentialVariogram method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{grid:glomar_gridding.variogram.ExponentialVariogram.fit}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{fit}}}
+{\sphinxparam{\DUrole{n}{distance\_matrix}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Fit the ExponentialVariogram model to a distance matrix
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{distance\_matrix}} (\sphinxstyleliteralemphasis{\sphinxupquote{numpy.ndarray}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{xarray.DataArray}}) \textendash{} The distance matrix indicating the distance between each pair of
+points in the grid.
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A matrix containing the variogram values at each distance.
+
+\sphinxlineitem{Return type}
+\sphinxAtStartPar
+numpy.ndarray | xarray.DataArray
+
+\end{description}\end{quote}
+\subsubsection*{Examples}
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{ExponentialVariogram}\PYG{p}{(}\PYG{n+nb}{range}\PYG{o}{=}\PYG{l+m+mi}{1200}\PYG{p}{,} \PYG{n}{psill}\PYG{o}{=}\PYG{l+m+mf}{1.2}\PYG{p}{,} \PYG{n}{nugget}\PYG{o}{=}\PYG{l+m+mf}{0.0}\PYG{p}{)}\PYG{o}{.}\PYG{n}{fit}\PYG{p}{(}\PYG{n}{dist}\PYG{p}{)}
+\end{sphinxVerbatim}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+\sphinxstepscope
+
+
 \chapter{Miscallaneous Modules}
 \label{\detokenize{misc:miscallaneous-modules}}\label{\detokenize{misc::doc}}
 
@@ -4637,7 +4772,7 @@ Functions for computing covariance using Matern Tau by Steven Chan (@stchan).
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.distances.}}\sphinxbfcode{\sphinxupquote{calculate\_distance\_matrix}}}
-{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{dist\_func=\textless{}function haversine\_distance\_from\_frame\textgreater{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_col=\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_col=\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{**dist\_kwargs}}}
+{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{dist\_func=\textless{}function haversine\_distance\_from\_frame\textgreater{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{**dist\_kwargs}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -4664,14 +4799,6 @@ available for this function are \sphinxtitleref{haversine\_distance} and
 A custom function can be based, that takes as input two tuples of
 positions (computing a single distance value between the pair of
 positions). (tuple{[}float, float{]}, tuple{[}float, float{]}) \sphinxhyphen{}\textgreater{} float
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{lat\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing latitude values.
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{lon\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing longitude values.
 
 \item {}
 \sphinxAtStartPar
@@ -4767,7 +4894,7 @@ of the latitudes to set the horizontal displacement scale.
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.distances.}}\sphinxbfcode{\sphinxupquote{euclidean\_distance}}}
-{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{radius}\DUrole{o}{=}\DUrole{default_value}{6371.0}}}
+{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_coord}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_coord}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{to\_radians}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{radius}\DUrole{o}{=}\DUrole{default_value}{6371.0}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -4787,6 +4914,20 @@ where
 \sphinxstyleliteralstrong{\sphinxupquote{df}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.DataFrame}}) \textendash{} DataFrame containing latitude and longitude columns indicating the
 positions between which distances are computed to form the distance
 matrix
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lat\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing latitude values.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lon\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing longitude values.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{to\_radians}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Convert inputs from degrees to radians. The distance methodology assumes
+that the input latitude and longitudes are in radians so must be
+converted if they are in degrees.
 
 \item {}
 \sphinxAtStartPar
@@ -4820,7 +4961,7 @@ float
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.distances.}}\sphinxbfcode{\sphinxupquote{haversine\_distance\_from\_frame}}}
-{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{radius}\DUrole{o}{=}\DUrole{default_value}{6371}}}
+{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_coord}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_coord}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{to\_radians}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{radius}\DUrole{o}{=}\DUrole{default_value}{6371}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -4833,6 +4974,20 @@ points on the earth (specified in decimal degrees).
 \sphinxstyleliteralstrong{\sphinxupquote{df}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.DataFrame}}) \textendash{} DataFrame containing latitude and longitude columns indicating the
 positions between which distances are computed to form the distance
 matrix
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lat\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing latitude values.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lon\_coord}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column in the input DataFrame containing longitude values.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{to\_radians}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Convert inputs from degrees to radians. The distance methodology assumes
+that the input latitude and longitudes are in radians so must be
+converted if they are in degrees.
 
 \item {}
 \sphinxAtStartPar
