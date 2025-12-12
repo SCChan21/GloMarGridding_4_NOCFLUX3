@@ -101,7 +101,17 @@ def test_weighted_sum() -> None:
     df = pl.DataFrame(
         {
             "lon": [23.1, 23.9, 23.45, 45.1, 45.6, 45.2, 45.3, -11.3, -11.3],
-            "lat": [-19.8, -19.2, -19.0, 71.4, 71.6, 71.8, 71.1, 75.2, 75.2],
+            "latitude": [
+                -19.8,
+                -19.2,
+                -19.0,
+                71.4,
+                71.6,
+                71.8,
+                71.1,
+                75.2,
+                75.2,
+            ],
             "grid_idx": [0, 0, 0, 1, 1, 1, 1, 2, 2],
             "id": [
                 "SHIP",
@@ -139,6 +149,7 @@ def test_weighted_sum() -> None:
         group_col="id",
         error_group_correlated="correlated",
         error_uncorrelated="uncorrelated",
+        lat_col="latitude",
     )
 
     # TEST: number grid-boxes * total number of records

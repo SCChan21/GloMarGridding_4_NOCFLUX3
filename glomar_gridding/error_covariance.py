@@ -563,7 +563,10 @@ def grid_box_weighted_sum(
     """
     n_obs = grid_box_frame.height
     dist = haversine_distance_from_frame(
-        grid_box_frame.select([lat_col, lon_col])
+        grid_box_frame.select(
+            pl.col(lat_col).alias("lat"),
+            pl.col(lon_col).alias("lon"),
+        )
     )
     dates = grid_box_frame.get_column(date_col).to_numpy()
     dt_diff = np.abs(np.subtract.outer(dates, dates))  # np.timedelta us
