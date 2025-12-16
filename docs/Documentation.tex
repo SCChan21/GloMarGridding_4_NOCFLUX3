@@ -64,7 +64,7 @@
 
 
 \title{GloMarGridding}
-\date{Dec 12, 2025}
+\date{Dec 16, 2025}
 \release{1.0.1}
 \author{NOC Surface Processes}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -2487,6 +2487,10 @@ records with \_different\_ groups, and the value from the
 ‘error\_group\_correlated’ column squared when the groups match.
 
 \sphinxAtStartPar
+This computes the weights for a grid\sphinxhyphen{}box using the local inverse error
+covariance.
+
+\sphinxAtStartPar
 A factor of 1/4 can be applied to the cross\sphinxhyphen{}record pairs in the computation
 of correlated components for a subset of groupings considered “bad” \sphinxhyphen{} for
 example generic ids.
@@ -2667,6 +2671,10 @@ error covariance components (group\sphinxhyphen{}wise).
 The correlated components of the error covariance are 0 between pairs of
 records with \_different\_ groups, and the value from the
 ‘error\_group\_correlated’ column squared when the groups match.
+
+\sphinxAtStartPar
+This computes the weights for each grid\sphinxhyphen{}box using the local inverse error
+covariance.
 
 \sphinxAtStartPar
 A factor of 1/4 can be applied to the cross\sphinxhyphen{}record pairs in the computation

@@ -10,8 +10,8 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 
 ### New features and enhancements
 
-- Add `error_covariance.weighted_sum` function to compute weights for gridding using error
-  correlation structure of grouped records (#42).
+- Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
+  error correlation structure of grouped records (#42).
 
 ## 1.0.1 (2025-11-11)
 
