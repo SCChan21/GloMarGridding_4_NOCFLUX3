@@ -48,5 +48,5 @@ A new notebook was added ("Mask_example.ipynb") to demonstrate the full process.
    grid.kriging("ordinary", error_cov)
 
 
-.. autoclass:: glomar_gridding.variogram.ExponentialVariogram
+.. autoclass:: glomar_gridding.grid.Grid
    :members:

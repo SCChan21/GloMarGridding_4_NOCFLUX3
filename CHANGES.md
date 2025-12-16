@@ -18,6 +18,8 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
   `covariance_matrix`, and `kriging` methods. Also allows for _masking_ with the `add_mask` method,
   allowing for the kriging to be performed on a masked grid. Includes a `from_resolution`
   constructor method, replicating behaviour of `grid.grid_from_resoluton` (#33).
+- Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
+  error correlation structure of grouped records (#42).
 
 ## 1.0.1 (2025-11-11)
 
