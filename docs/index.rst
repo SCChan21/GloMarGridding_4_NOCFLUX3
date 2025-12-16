@@ -17,6 +17,7 @@ Welcome to GloMarGridding's documentation!
    ellipse
    error_covariance
    kriging
+   grid
    misc
 
 ..
