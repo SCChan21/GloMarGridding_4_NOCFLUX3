@@ -8,6 +8,11 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 
 - Now supports python 3.14 (#61).
 
+### New features and enhancements
+
+- Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
+  error correlation structure of grouped records (#42).
+
 ### Internal changes
 
 - Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are

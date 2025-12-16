@@ -64,7 +64,7 @@
 
 
 \title{GloMarGridding}
-\date{Nov 10, 2025}
+\date{Dec 16, 2025}
 \release{1.0.1}
 \author{NOC Surface Processes}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -1438,7 +1438,7 @@ Calculate covariance and correlation matrices.
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxbfcode{\sphinxupquote{compute\_params}}}
-{\sphinxparam{\DUrole{n}{default\_value}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.0001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{return\_r2}\DUrole{o}{=}\DUrole{default_value}{False}}}
+{\sphinxparam{\DUrole{n}{default\_value}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.0001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -1618,10 +1618,6 @@ all possible training data. Data that falls within the min and max
 distance values using the selected distance method are selected as
 training data.
 
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{return\_r2}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Add R2 / Correlation Matrix to output fields.
-
 \end{itemize}
 
 \sphinxlineitem{Returns}
@@ -1649,7 +1645,7 @@ upper boundaries
 \item {}
 \sphinxAtStartPar
 9: fail, probably due to running out of maxiter (see
-scipy.optimize.minimize kwargs “options”)
+scipy.optimize.minimize kwargs “options)”
 
 \end{itemize}
 
@@ -1691,7 +1687,7 @@ that corresponds to a specific lat lon
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxbfcode{\sphinxupquote{fit\_ellipse\_model}}}
-{\sphinxparam{\DUrole{n}{xy\_point}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{return\_r2}\DUrole{o}{=}\DUrole{default_value}{False}}}
+{\sphinxparam{\DUrole{n}{xy\_point}}\sphinxparamcomma \sphinxparam{\DUrole{n}{matern\_ellipse}}\sphinxparamcomma \sphinxparam{\DUrole{n}{max\_distance}\DUrole{o}{=}\DUrole{default_value}{6000}}\sphinxparamcomma \sphinxparam{\DUrole{n}{min\_distance}\DUrole{o}{=}\DUrole{default_value}{0.3}}\sphinxparamcomma \sphinxparam{\DUrole{n}{delta\_x\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Modified\_Met\_Office\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{guesses}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bounds}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{opt\_method}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}Nelder\sphinxhyphen{}Mead\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{tol}\DUrole{o}{=}\DUrole{default_value}{0.001}}\sphinxparamcomma \sphinxparam{\DUrole{n}{estimate\_SE}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_jobs}\DUrole{o}{=}\DUrole{default_value}{4}}\sphinxparamcomma \sphinxparam{\DUrole{n}{n\_sim}\DUrole{o}{=}\DUrole{default_value}{500}}\sphinxparamcomma \sphinxparam{\DUrole{n}{physical\_distance\_selection}\DUrole{o}{=}\DUrole{default_value}{True}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -1853,10 +1849,6 @@ Euclidean distance of degree difference between each position and
 all possible training data. Data that falls within the min and max
 distance values using the selected distance method are selected as
 training data.
-
-\item {}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{return\_r2}} (\sphinxstyleliteralemphasis{\sphinxupquote{bool}}) \textendash{} Add R2 / Correlation Matrix to output fields.
 
 \end{itemize}
 
@@ -2473,6 +2465,123 @@ numpy.matrix
 
 \end{fulllineitems}
 
+\index{grid\_box\_weighted\_sum() (in module glomar\_gridding.error\_covariance)@\spxentry{grid\_box\_weighted\_sum()}\spxextra{in module glomar\_gridding.error\_covariance}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{error_covariance:glomar_gridding.error_covariance.grid_box_weighted_sum}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{glomar\_gridding.error\_covariance.}}\sphinxbfcode{\sphinxupquote{grid\_box\_weighted\_sum}}}
+{\sphinxparam{\DUrole{n}{grid\_box\_frame}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_col}}\sphinxparamcomma \sphinxparam{\DUrole{n}{error\_group\_correlated}}\sphinxparamcomma \sphinxparam{\DUrole{n}{error\_uncorrelated}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{date\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}datetime\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sill}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}sill\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{space\_range}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}space\_range\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{time\_range}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}time\_range\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bad\_groups}\DUrole{o}{=}\DUrole{default_value}{None}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Get the weighted mean weights for a grid\sphinxhyphen{}box. The weights are computed using
+uncertainty from a simple spatio\sphinxhyphen{}temporal exponential variogram model, the
+correlated error covariance components (group\sphinxhyphen{}wise) and the uncorrelated
+error covariance components (group\sphinxhyphen{}wise).
+
+\sphinxAtStartPar
+The correlated components of the error covariance are 0 between pairs of
+records with \_different\_ groups, and the value from the
+‘error\_group\_correlated’ column squared when the groups match.
+
+\sphinxAtStartPar
+This computes the weights for a grid\sphinxhyphen{}box using the local inverse error
+covariance.
+
+\sphinxAtStartPar
+A factor of 1/4 can be applied to the cross\sphinxhyphen{}record pairs in the computation
+of correlated components for a subset of groupings considered “bad” \sphinxhyphen{} for
+example generic ids.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{grid\_box\_frame}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.DataFrame}}) \textendash{} DataFrame containing the observations for all records within a grid\sphinxhyphen{}box.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{group\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column by which records are grouped for the purpose of
+correlated and uncorrelated components of the error covariance
+structure.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{error\_group\_correlated}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column containing correlated error values by group.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{error\_uncorrelated}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column containing uncorrelated error values by group.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lat\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the latitude column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lon\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the longitude column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{date\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the datetime column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{sill}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing sill values of the simplified varigram
+model.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{space\_range}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing space range values for the simplified
+varigram model. {[}km{]}
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{time\_range}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing time range values for the simplified
+varigram model. {[}days{]}
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{bad\_groups}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}\sphinxstyleliteralemphasis{\sphinxupquote{ | }}\sphinxstyleliteralemphasis{\sphinxupquote{list}}\sphinxstyleliteralemphasis{\sphinxupquote{{[}}}\sphinxstyleliteralemphasis{\sphinxupquote{str}}\sphinxstyleliteralemphasis{\sphinxupquote{{]} }}\sphinxstyleliteralemphasis{\sphinxupquote{| }}\sphinxstyleliteralemphasis{\sphinxupquote{None}}) \textendash{} Values in the groups that required lower priority in the weightings.
+For example, this could be records with invalid, or generic, ids.
+
+\end{itemize}
+
+\sphinxlineitem{Return type}
+\sphinxAtStartPar
+\DUrole{sphinx_autodoc_typehints-type}{\sphinxcode{\sphinxupquote{tuple}}{[}\sphinxcode{\sphinxupquote{ndarray}}, \sphinxcode{\sphinxupquote{ndarray}}, \sphinxcode{\sphinxupquote{ndarray}}, \sphinxcode{\sphinxupquote{ndarray}}{]}}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+\begin{itemize}
+\item {}
+\sphinxAtStartPar
+\sphinxstylestrong{weights} (\sphinxstyleemphasis{np.ndarray}) \textendash{} A vector containing the weights for each record in the grid\sphinxhyphen{}box.
+Retaining the order within the grid\sphinxhyphen{}cell.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstylestrong{vario} (\sphinxstyleemphasis{np.ndarray}) \textendash{} A matrix containing the output of the spatio\sphinxhyphen{}temporal variogram model
+for the grid\sphinxhyphen{}box records.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstylestrong{correlated} (\sphinxstyleemphasis{np.ndarray}) \textendash{} Correlated error covariance matrix for the grid\sphinxhyphen{}box. Contains correlated
+error values when the group between each pair of records matches, zero
+otherwise.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstylestrong{uncorrelated} (\sphinxstyleemphasis{np.ndarray}) \textendash{} Uncorrelated error matrx for the grid\sphinxhyphen{}box. Diagonal matrix.
+
+\end{itemize}
+
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{uncorrelated\_components() (in module glomar\_gridding.error\_covariance)@\spxentry{uncorrelated\_components()}\spxextra{in module glomar\_gridding.error\_covariance}}
 
 \begin{fulllineitems}
@@ -2536,6 +2645,109 @@ the diagonal of the returned covariance matrix.
 
 \end{itemize}
 
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{weighted\_sum() (in module glomar\_gridding.error\_covariance)@\spxentry{weighted\_sum()}\spxextra{in module glomar\_gridding.error\_covariance}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{error_covariance:glomar_gridding.error_covariance.weighted_sum}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{glomar\_gridding.error\_covariance.}}\sphinxbfcode{\sphinxupquote{weighted\_sum}}}
+{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{grid\_idx}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_col}}\sphinxparamcomma \sphinxparam{\DUrole{n}{error\_group\_correlated}}\sphinxparamcomma \sphinxparam{\DUrole{n}{error\_uncorrelated}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lat\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lat\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lon\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}lon\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{date\_col}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}datetime\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sill}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}sill\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{space\_range}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}space\_range\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{time\_range}\DUrole{o}{=}\DUrole{default_value}{\textquotesingle{}time\_range\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{bad\_groups}\DUrole{o}{=}\DUrole{default_value}{None}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Get the weights matrix for the weighted sum approach, accounting for
+correlated and uncorrelated error components. The weights are computed using
+uncertainty from a simple spatio\sphinxhyphen{}temporal exponential variogram model, the
+correlated error covariance components (group\sphinxhyphen{}wise) and the uncorrelated
+error covariance components (group\sphinxhyphen{}wise).
+
+\sphinxAtStartPar
+The correlated components of the error covariance are 0 between pairs of
+records with \_different\_ groups, and the value from the
+‘error\_group\_correlated’ column squared when the groups match.
+
+\sphinxAtStartPar
+This computes the weights for each grid\sphinxhyphen{}box using the local inverse error
+covariance.
+
+\sphinxAtStartPar
+A factor of 1/4 can be applied to the cross\sphinxhyphen{}record pairs in the computation
+of correlated components for a subset of groupings considered “bad” \sphinxhyphen{} for
+example generic ids.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{df}} (\sphinxstyleliteralemphasis{\sphinxupquote{polars.DataFrame}}) \textendash{} The observation DataFrame. Contains the “grid\_idx” column which
+indicates the gridbox for a given observation. The index of the
+DataFrame should match the index ordering for the output weights.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{grid\_idx}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column containing the gridbox index from the output grid.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{group\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column by which records are grouped for the purpose of
+correlated and uncorrelated components of the error covariance
+structure.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{error\_group\_correlated}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column containing correlated error values by group.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{error\_uncorrelated}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the column containing uncorrelated error values by group.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lat\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the latitude column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lon\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the longitude column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{date\_col}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Name of the datetime column.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{bad\_groups}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} Values in the groups that required lower priority in the weightings.
+For example, this could be records with invalid, or generic, ids.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{sill}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing sill values of the simplified varigram
+model.
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{space\_range}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing space range values for the simplified
+varigram model. {[}km{]}
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{time\_range}} (\sphinxstyleliteralemphasis{\sphinxupquote{str}}) \textendash{} The name of the column containing time range values for the simplified
+varigram model. {[}days{]}
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+\sphinxstylestrong{weights} \textendash{} A matrix containing the weights for each record in the data.
+Retaining the order within the frame.
+
+\sphinxlineitem{Return type}
+\sphinxAtStartPar
+np.ndarray
 
 \end{description}\end{quote}
 
