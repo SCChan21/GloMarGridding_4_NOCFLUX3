@@ -13,6 +13,11 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 - Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
   error correlation structure of grouped records (#42).
 
+### Internal changes
+
+- Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
+  symmetric (#59).
+
 ## 1.0.1 (2025-11-11)
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
