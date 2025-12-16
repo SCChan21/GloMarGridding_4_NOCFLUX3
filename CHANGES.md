@@ -21,6 +21,10 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
 - Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
   error correlation structure of grouped records (#42).
 
+### Bug Fixes
+
+- Fixed typo in `kriging.Kriging.constraint_mask` docstrings (#63)
+
 ### Internal changes
 
 - Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
