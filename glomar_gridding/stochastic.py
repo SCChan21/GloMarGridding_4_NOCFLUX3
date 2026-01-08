@@ -397,7 +397,7 @@ def scipy_mv_normal_draw(  # noqa: C901
     loc: np.ndarray,
     cov: np.ndarray,
     ndraws: int = 1,
-    sym_atol: float = 1E-5,
+    sym_atol: float = 1e-5,
     eigen_rtol: float = 1e-6,
     eigen_fudge: float = 1e-8,
 ) -> np.ndarray:
@@ -462,8 +462,8 @@ def scipy_mv_normal_draw(  # noqa: C901
     if not scipy_linalg.issymmetric(cov):
         if scipy_linalg.issymmetric(cov, atol=sym_atol):
             logging.warning(
-                "cov is nearly symmetric but not exactly so, " +
-                "using (cov + cov.T) / 2 instead."
+                "cov is nearly symmetric but not exactly so, "
+                + "using (cov + cov.T) / 2 instead."
             )
             voc = (cov + cov.T) / 2
         else:
