@@ -21,6 +21,7 @@ import logging
 
 import numpy as np
 from scipy import stats
+from scipy import linalg as scipy_linalg
 
 from glomar_gridding.kriging import (
     Kriging,
@@ -396,6 +397,7 @@ def scipy_mv_normal_draw(  # noqa: C901
     loc: np.ndarray,
     cov: np.ndarray,
     ndraws: int = 1,
+    sym_atol: float = 1E-5,
     eigen_rtol: float = 1e-6,
     eigen_fudge: float = 1e-8,
 ) -> np.ndarray:
@@ -456,8 +458,21 @@ def scipy_mv_normal_draw(  # noqa: C901
         raise ValueError("cov should be 2D.")
     if cov_shape[0] != cov_shape[1]:
         raise ValueError("cov is not a square matrix")
+
+    if not scipy_linalg.issymmetric(cov):
+        if scipy_linalg.issymmetric(cov, atol=sym_atol):
+            logging.warning(
+                "cov is nearly symmetric but not exactly so, " +
+                "using (cov + cov.T) / 2 instead."
+            )
+            voc = (cov + cov.T) / 2
+        else:
+            raise ValueError("cov is not symmetric.")
+    else:
+        voc = cov
+
     try:
-        draw = np.random.multivariate_normal(loc, cov, size=ndraws)
+        draw = np.random.multivariate_normal(loc, voc, size=ndraws)
         return draw[0] if ndraws == 1 else draw
     except np.linalg.LinAlgError:
         pass
@@ -466,7 +481,7 @@ def scipy_mv_normal_draw(  # noqa: C901
 
     # Try to use eigen decomposition to generate a new covariance matrix that
     # would be positive-definite
-    w, v = np.linalg.eigh(cov)
+    w, v = np.linalg.eigh(voc)
     w = np.real_if_close(w)
     v = np.real_if_close(v)
     if any_complex(w):
@@ -499,4 +514,4 @@ def scipy_mv_normal_draw(  # noqa: C901
         mean=loc, cov=cov2.covariance, size=ndraws
     )
     # draw = np.random.multivariate_normal(loc, cov2.covariance, size=ndraws)
-    return draw[0] if ndraws == 1 else draw
+    return draw
