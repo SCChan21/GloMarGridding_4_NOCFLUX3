@@ -18,6 +18,7 @@ approach. Plus function for drawing from a covariance matrix.
 """
 
 import logging
+from warnings import warn
 
 import numpy as np
 import scipy as sp
@@ -454,6 +455,10 @@ def draw_from_cov(
         draw = np.random.multivariate_normal(loc, cov, size=ndraws)
         return draw[0] if ndraws == 1 else draw
     except np.linalg.LinAlgError:
+        warn(
+            "Drawing from cov using numpy failed, "
+            + " attempting fallback using scipy"
+        )
         return _fallback_draw_from_cov(
             loc,
             cov,
