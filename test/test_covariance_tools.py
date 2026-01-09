@@ -10,6 +10,7 @@ from glomar_gridding.covariance_tools import (
     simple_clipping,
     validate_covariance,
 )
+from glomar_gridding.stochastic import draw_from_cov, _fallback_draw_from_cov
 
 
 def test_eigenvalue_clip() -> None:
@@ -265,3 +266,31 @@ def test_cov_validaton():
         assert e.args[0] == "cov is not a square matrix"
     except Exception as e:
         raise e
+
+
+def test_draw_from_cov():
+    n = 15
+    A = np.random.rand(n, n)
+    S = np.dot(A, A.T)
+    loc = np.random.rand(n)
+
+    ndraws = 6
+    draws = draw_from_cov(loc, S, ndraws=ndraws)
+    assert draws.shape == (ndraws, n)
+
+    draw = draw_from_cov(loc, S, ndraws=1)
+    assert draw.shape == (n,)
+
+
+def test_draw_from_cov_fallback():
+    n = 15
+    A = np.random.rand(n, n)
+    S = np.dot(A, A.T)
+    loc = np.random.rand(n)
+
+    ndraws = 6
+    draws = _fallback_draw_from_cov(loc, S, ndraws=ndraws)
+    assert draws.shape == (ndraws, n)
+
+    draw = _fallback_draw_from_cov(loc, S, ndraws=1)
+    assert draw.shape == (n,)
