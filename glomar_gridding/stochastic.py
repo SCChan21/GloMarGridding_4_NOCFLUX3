@@ -369,14 +369,14 @@ class StochasticKriging(Kriging):
 
         # Simulate a state from the covariance matrix
         if simulated_state is None:
-            simulated_state = scipy_mv_normal_draw(
+            simulated_state = draw_from_cov(
                 loc=np.zeros(self.covariance.shape[0]),
                 cov=self.covariance,
                 ndraws=1,
             ).astype(self.covariance.dtype)
 
         # Simulate observations
-        self.simulated_obs = simulated_state[self.idx] + scipy_mv_normal_draw(
+        self.simulated_obs = simulated_state[self.idx] + draw_from_cov(
             loc=np.zeros(self.error_cov.shape[0]),
             cov=self.error_cov,
             ndraws=1,
@@ -392,7 +392,7 @@ class StochasticKriging(Kriging):
         return self.gridded_field + self.epsilon
 
 
-def scipy_mv_normal_draw(  # noqa: C901
+def draw_from_cov(  # noqa: C901
     loc: np.ndarray,
     cov: np.ndarray,
     ndraws: int = 1,
