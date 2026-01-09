@@ -393,7 +393,7 @@ class StochasticKriging(Kriging):
         return self.gridded_field + self.epsilon
 
 
-def draw_from_cov(  # noqa: C901
+def draw_from_cov(
     loc: np.ndarray,
     cov: np.ndarray,
     ndraws: int = 1,
@@ -402,11 +402,8 @@ def draw_from_cov(  # noqa: C901
     eigen_fudge: float = 1e-8,
 ) -> np.ndarray:
     """
-    Do a random multivariate normal draw using
-    scipy.stats.multivariate_normal.rvs
-
-    numpy.random.multivariate_normal can also,
-    but fixing seeds are more difficult using numpy
+    Do a random multivariate normal draw using numpy, with a fallback to
+    scipy.stats.multivariate_normal.rvs if that fails.
 
     This function has similar API as GP_draw with less kwargs.
 
@@ -444,7 +441,7 @@ def draw_from_cov(  # noqa: C901
     --------
     >>> A = np.random.rand(5, 5)
     >>> cov = np.dot(A, A.T)
-    >>> scipy_mv_normal_draw(np.zeros(5), cov, ndraws=5)
+    >>> draw_from_cov(np.zeros(5), cov, ndraws=5)
     array([[-0.35972806, -0.51289612,  0.85307028, -0.11580307,  0.6677707 ],
            [-1.38214628, -1.29331638, -0.4879436 , -1.42310831, -0.19369562],
            [-1.04502143, -1.97686163, -2.058605  , -1.97202206, -2.90116796],
