@@ -424,6 +424,8 @@ def scipy_mv_normal_draw(  # noqa: C901
     n_draws : int
         number of simulations, this is usually set to 1 except during
     unit testing
+    sym_atol : float
+        absolute tolerance to check symmetry of cov
     eigen_rtol : float
         relative tolerance to negative eigenvalues
     eigen_fudge : float
