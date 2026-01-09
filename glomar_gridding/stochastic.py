@@ -27,6 +27,7 @@ from glomar_gridding.kriging import (
     _extended_inverse,
     adjust_small_negative,
 )
+from glomar_gridding.covariance_tools import validate_covariance
 
 
 class StochasticKriging(Kriging):
@@ -450,39 +451,38 @@ def draw_from_cov(  # noqa: C901
            [-1.97981119, -2.72330373,  0.0088662 , -2.53521893, -0.03670664],
            [ 0.49948228,  0.54695988,  0.33864294,  0.53730282,  0.14743019]])
     """
-
-    def any_complex(arr: np.ndarray) -> bool:
-        return bool(np.any(np.iscomplex(arr)))
-
-    cov_shape = cov.shape
-    if len(cov_shape) != 2:
-        raise ValueError("cov should be 2D.")
-    if cov_shape[0] != cov_shape[1]:
-        raise ValueError("cov is not a square matrix")
-
-    if not sp.linalg.issymmetric(cov):
-        if sp.linalg.issymmetric(cov, atol=sym_atol):
-            logging.warning(
-                "cov is nearly symmetric but not exactly so, "
-                + "using (cov + cov.T) / 2 instead."
-            )
-            voc = (cov + cov.T) / 2
-        else:
-            raise ValueError("cov is not symmetric.")
-    else:
-        voc = cov
+    cov = validate_covariance(cov, sym_atol=sym_atol)
 
     try:
-        draw = np.random.multivariate_normal(loc, voc, size=ndraws)
+        draw = np.random.multivariate_normal(loc, cov, size=ndraws)
         return draw[0] if ndraws == 1 else draw
     except np.linalg.LinAlgError:
+        return _fallback_draw_from_cov(
+            loc,
+            cov,
+            ndraws=ndraws,
+            eigen_rtol=eigen_rtol,
+            eigen_fudge=eigen_fudge,
+        )
         pass
     except Exception as e:
         raise e
 
+
+def _fallback_draw_from_cov(
+    loc: np.ndarray,
+    cov: np.ndarray,
+    ndraws: int = 1,
+    sym_atol: float = 1e-5,
+    eigen_rtol: float = 1e-6,
+    eigen_fudge: float = 1e-8,
+) -> np.ndarray:
+    def any_complex(arr: np.ndarray) -> bool:
+        return bool(np.any(np.iscomplex(arr)))
+
     # Try to use eigen decomposition to generate a new covariance matrix that
     # would be positive-definite
-    w, v = np.linalg.eigh(voc)
+    w, v = np.linalg.eigh(cov)
     w = np.real_if_close(w)
     v = np.real_if_close(v)
     if any_complex(w):
