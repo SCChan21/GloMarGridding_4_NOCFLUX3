@@ -2,7 +2,7 @@
 
 ## 1.1.0 (Unreleased)
 
-Contributors to this version: Joseph Siddons (@jtsiddons, @josidd, @SCChan21).
+Contributors to this version: Joseph Siddons (@jtsiddons, @josidd), Steven Chan ( @SCChan21).
 
 ### Announcements
 
