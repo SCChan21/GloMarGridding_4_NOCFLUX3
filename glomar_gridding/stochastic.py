@@ -20,8 +20,7 @@ approach. Plus function for drawing from a covariance matrix.
 import logging
 
 import numpy as np
-from scipy import stats
-from scipy import linalg as scipy_linalg
+import scipy as sp
 
 from glomar_gridding.kriging import (
     Kriging,
@@ -461,8 +460,8 @@ def scipy_mv_normal_draw(  # noqa: C901
     if cov_shape[0] != cov_shape[1]:
         raise ValueError("cov is not a square matrix")
 
-    if not scipy_linalg.issymmetric(cov):
-        if scipy_linalg.issymmetric(cov, atol=sym_atol):
+    if not sp.linalg.issymmetric(cov):
+        if sp.linalg.issymmetric(cov, atol=sym_atol):
             logging.warning(
                 "cov is nearly symmetric but not exactly so, "
                 + "using (cov + cov.T) / 2 instead."
@@ -503,7 +502,7 @@ def scipy_mv_normal_draw(  # noqa: C901
             raise ValueError("Negative eigenvalues are unexpectedly large.")
         w[w < eigen_fudge] = eigen_fudge
 
-    cov2 = stats.Covariance.from_eigendecomposition((w, v))
+    cov2 = sp.stats.Covariance.from_eigendecomposition((w, v))
 
     # WARN: Weird/inconsistent behavior warning
     # if size==1 and cov is an instance of stats.Covariance
@@ -512,7 +511,7 @@ def scipy_mv_normal_draw(  # noqa: C901
     # but is INCONSISTENT with behavior when cov is a
     # valid numpy array ---> shape is (len(loc2),)
 
-    draw = stats.multivariate_normal.rvs(
+    draw = sp.stats.multivariate_normal.rvs(
         mean=loc, cov=cov2.covariance, size=ndraws
     )
     # draw = np.random.multivariate_normal(loc, cov2.covariance, size=ndraws)
