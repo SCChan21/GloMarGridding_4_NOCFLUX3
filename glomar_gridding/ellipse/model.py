@@ -324,7 +324,7 @@ class EllipseModel:
         y_LL = self.cov_ij(X, **kwargs)
 
         if arctanh_transform:
-            # Warning against arctanh(abs(y) > 1); (TODO: Add correction later)
+            # Warning against arctanh(abs(y) > 1);
             arctanh_threshold = 0.999999
             # arctanh_threshold = 1.0
             max_abs_y = np.max(np.abs(y))
