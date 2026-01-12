@@ -400,7 +400,7 @@ def draw_from_cov(
     ndraws: int = 1,
     sym_atol: float = 1e-5,
     eigen_rtol: float = 1e-6,
-    eigen_fudge: float = 1e-8,
+    eigen_thresh: float = 1e-8,
 ) -> np.ndarray:
     """
     Do a random multivariate normal draw using numpy, with a fallback to
@@ -426,7 +426,7 @@ def draw_from_cov(
         absolute tolerance to check symmetry of cov
     eigen_rtol : float
         relative tolerance to negative eigenvalues
-    eigen_fudge : float
+    eigen_thresh : float
         forced minimum value of eigenvalues if negative values are detected
 
     Returns
@@ -464,7 +464,7 @@ def draw_from_cov(
             cov,
             ndraws=ndraws,
             eigen_rtol=eigen_rtol,
-            eigen_fudge=eigen_fudge,
+            eigen_thresh=eigen_thresh,
         )
         pass
     except Exception as e:
@@ -477,7 +477,7 @@ def _fallback_draw_from_cov(
     ndraws: int = 1,
     sym_atol: float = 1e-5,
     eigen_rtol: float = 1e-6,
-    eigen_fudge: float = 1e-8,
+    eigen_thresh: float = 1e-8,
 ) -> np.ndarray:
     def any_complex(arr: np.ndarray) -> bool:
         return bool(np.any(np.iscomplex(arr)))
@@ -502,7 +502,7 @@ def _fallback_draw_from_cov(
         )
         if rtol_check >= eigen_rtol:
             raise ValueError("Negative eigenvalues are unexpectedly large.")
-        w[w < eigen_fudge] = eigen_fudge
+        w[w < eigen_thresh] = eigen_thresh
 
     cov2 = sp.stats.Covariance.from_eigendecomposition((w, v))
 

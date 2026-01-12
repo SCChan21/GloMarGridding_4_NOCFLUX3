@@ -10,7 +10,7 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd), Steven Chan 
 
 ### Breaking changes
 
-- `stochastic.scipy_mv_normal_draw` renamed to `stochastic.draw_from_cov` (#74)
+* `stochastic.scipy_mv_normal_draw` renamed to `stochastic.draw_from_cov` (#74)
 
 ### New features and enhancements
 
@@ -40,6 +40,7 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd), Steven Chan 
 
 ### Internal changes
 
+* Clean-up misleading language in comments, warnings, parameter names (#82)
 * Unit tests for `covariance_tools` and `variogram` modules now test that resulting matrices are
   symmetric (#59).
 
