@@ -845,3 +845,44 @@ def eigenvalue_clip(
             return laloux_clip(cov, **kwargs)
         case _:
             raise ValueError("Unknown clipping method")
+
+
+def validate_covariance(
+    cov: np.ndarray,
+    sym_atol: float = 1e-5,
+) -> np.ndarray:
+    """
+    Validate that a covariance is square and symmetric.
+
+    If the input is symmetric return itself. If it is close to symmetric (within
+    'sym_atol') then return (cov + cov.T) / 2. Otherwise raise an error.
+
+    Parameters
+    ----------
+    cov : numpy.ndarray
+        Covariance Matrix
+    sym_atol : float
+        absolute tolerance to check symmetry of cov
+
+    Returns
+    -------
+    cov : numpy.ndarray
+        Symmetric square covariance matrix
+    """
+    cov_shape = cov.shape
+    if len(cov_shape) != 2:
+        raise ValueError("cov should be 2D.")
+    if cov_shape[0] != cov_shape[1]:
+        raise ValueError("cov is not a square matrix")
+
+    if not sp.linalg.issymmetric(cov):
+        if sp.linalg.issymmetric(cov, atol=sym_atol):
+            warn(
+                "cov is nearly symmetric but not exactly so, "
+                + "using (cov + cov.T) / 2 instead."
+            )
+            return (cov + cov.T) / 2
+        else:
+            raise ValueError("cov is not symmetric.")
+
+    return cov

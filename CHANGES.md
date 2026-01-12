@@ -2,15 +2,22 @@
 
 ## 1.1.0 (Unreleased)
 
-Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
+Contributors to this version: Joseph Siddons (@jtsiddons, @josidd), Steven Chan (@SCChan21).
 
 ### Announcements
 
 * Now supports python 3.14 (#61).
 
+### Breaking changes
+
+- `stochastic.scipy_mv_normal_draw` renamed to `stochastic.draw_from_cov` (#74)
+
 ### New features and enhancements
 
 * Can now compute ellipse covariance for 'unrotated' and 'isotropic' cases (#58)
+* `grid.grid_from_resoluton` and `grid.Grid.from_resolution` have new `definition` argument
+* Added `covariance_tools.validate_covariance` to validate shape and symmetry of covariance matrix,
+  to within a tolerance (#74)
 * `grid.grid_from_resoluton` and `grid.Grid.from_resolution` have new `definition` argument
   describing how the left boundary in each coordinate defines the grid, as the "left" edge of the
   grid in each direction (so that grid-boxes are defined by lower-bound + resolution / 2), or the
@@ -21,10 +28,15 @@ Contributors to this version: Joseph Siddons (@jtsiddons, @josidd).
   constructor method, replicating behaviour of `grid.grid_from_resoluton` (#33).
 * Add `error_covariance.weighted_sum` function to compute weights for gridding using local inverse
   error correlation structure of grouped records (#42).
+* Checks if matrix is symmetric in `stochastic.scipy_mv_normal_draw`; adds `sym_atol` argument for
+  absolute tolerance in input covariance symmetry; if slightly asymmetric, use `(cov + cov.T) / 2`
+  (#73)
 
 ### Bug Fixes
 
 * Fixed typo in `kriging.Kriging.constraint_mask` docstrings (#63)
+* Return vector in `stochastic.scipy_mv_normal_draw` when back-up approach
+  `stats.multivariate_normal.rvs` is used with `ndraws=1` (#73)
 
 ### Internal changes
 
