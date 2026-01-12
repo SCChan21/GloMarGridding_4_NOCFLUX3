@@ -1457,50 +1457,39 @@ Calculate covariance and correlation matrices.
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
-Fit ellipses/covariance models using adhoc local covariances to all
-unmasked grid points
+Fit ellipses/covariance models using local covariances to all unmasked
+grid points.
 
 \sphinxAtStartPar
-The form of the covariance model depends on the “fform” attribute of the
-Ellipse model:
+The form of the covariance model depends on the ‘anistropic’ and
+‘rotated’ attributes of the ellipse model:
 \begin{itemize}
 \item {}
 \sphinxAtStartPar
-isotropic (radial distance only)
+anisotropic=False (radial distance only)
 
 \item {}
 \sphinxAtStartPar
-anistropic (x and y are different, but not rotated)
+anistropic=True and rotated=False (x and y are different, but not
+rotated)
 
 \item {}
 \sphinxAtStartPar
-anistropic\_rotated (rotated)
+anistropic=True and rotated=True (x and y are different, ellipse can
+be rotated)
 
 \end{itemize}
 
 \sphinxAtStartPar
-If the “fform” attribute ends with \_pd then physical distances are used
-instead of degrees
-
-\sphinxAtStartPar
-range is defined max\_distance (either in km and degrees)
-default is in degrees, but needs to be km if fform is from \_pd series
-\textless{}— likely to be wrong: max\_distance should only be in degrees
-
-\sphinxAtStartPar
-there is also a min\_distance in which values,
-matern function is not defined at the origin, so the 0.0 needs to
-removed
-
-\sphinxAtStartPar
-v = matern covariance function shape parameter
+The ellipse model attribute v = matern covariance function shape
+parameter.
 Karspeck et al. \sphinxcite{index:karspeck} and Paciorek \& Schervish
 \sphinxcite{index:paciorekschervish}
-but 0.5 and 1.5 are popular 0.5 gives an exponential decay
+use 3 and 4 but 0.5 and 1.5 are popular. 0.5 gives an exponential decay:
 lim v\textendash{}\textgreater{}inf, Gaussian shape
 
 \sphinxAtStartPar
-delta\_x\_method: only meaningful for \_pd fits:
+delta\_x\_method: only meaningful for physical\_distance ellipses:
 \begin{itemize}
 \item {}
 \sphinxAtStartPar
@@ -1532,13 +1521,15 @@ of the \sphinxtitleref{EllipseModel}
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{max\_distance}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} Maximum separation in distance unit that data will be fed
 into parameter fitting
-Units depend on fform (it is usually either degrees or km)
+Units depend on physical\_distance attribute (km if True, otherwise
+degrees).
 
 \item {}
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{min\_distance}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} Minimum separation in distance unit that data
 will be fed into parameter fitting
-Units depend on fform (it is usually either degrees or km)
+Units depend on physical\_distance attribute (km if True, otherwise
+degrees).
 Note: Due to the way we compute the Matern function,
 it is undefined at dist == 0 even if the limit \sphinxhyphen{}\textgreater{} zero is obvious.
 
@@ -1706,41 +1697,39 @@ that corresponds to a specific lat lon
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
-Fit ellipses/covariance models using adhoc local covariances
+Fit ellipses/covariance models using local covariances.
 
 \sphinxAtStartPar
-the form of the covariance model depends on the “fform” attribute of the
-Ellipse model:
-\begin{quote}
+The form of the covariance model depends on the ‘anistropic’ and
+‘rotated’ attributes of the ellipse model:
+\begin{itemize}
+\item {}
+\sphinxAtStartPar
+anisotropic=False (radial distance only)
+
+\item {}
+\sphinxAtStartPar
+anistropic=True and rotated=False (x and y are different, but not
+rotated)
+
+\item {}
+\sphinxAtStartPar
+anistropic=True and rotated=True (x and y are different, ellipse can
+be rotated)
+
+\end{itemize}
 
 \sphinxAtStartPar
-isotropic (radial distance only)
-anistropic (x and y are different, but not rotated)
-anistropic\_rotated (rotated)
-\end{quote}
-
-\sphinxAtStartPar
-If the “fform” attribute ends with \_pd then physical distances are used
-instead of degrees
-
-\sphinxAtStartPar
-range is defined max\_distance (either in km and degrees)
-default is in degrees, but needs to be km if fform is from \_pd series
-\textless{}— likely to be wrong: max\_distance should only be in degrees
-
-\sphinxAtStartPar
-there is also a min\_distance in which values,
-matern function is not defined at the origin, so the 0.0 needs to
-removed
-
-\sphinxAtStartPar
-v = matern covariance function shape parameter
+The ellipse model attribute v = matern covariance function shape
+parameter.
 Karspeck et al. \sphinxcite{index:karspeck} and Paciorek \& Schervish
 \sphinxcite{index:paciorekschervish}
 use 3 and 4 but 0.5 and 1.5 are popular. 0.5 gives an exponential decay:
 lim v\textendash{}\textgreater{}inf, Gaussian shape
-\begin{description}
-\sphinxlineitem{delta\_x\_method: only meaningful for \_pd fits:}\begin{itemize}
+
+\sphinxAtStartPar
+delta\_x\_method: only meaningful for physical\_distance ellipses:
+\begin{itemize}
 \item {}
 \sphinxAtStartPar
 “Met\_Office”: Cylindrical Earth delta\_x = 6400km x delta\_lon
@@ -1752,8 +1741,6 @@ lim v\textendash{}\textgreater{}inf, Gaussian shape
 lat
 
 \end{itemize}
-
-\end{description}
 \begin{quote}\begin{description}
 \sphinxlineitem{Parameters}\begin{itemize}
 \item {}
@@ -1764,13 +1751,15 @@ lat
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{max\_distance}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} Maximum separation in distance unit that data will be fed
 into parameter fitting
-Units depend on fform (it is usually either degrees or km)
+Units depend on physical\_distance attribute (km if True, otherwise
+degrees).
 
 \item {}
 \sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{min\_distance}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} Minimum separation in distance unit that data
 will be fed into parameter fitting
-Units depend on fform (it is usually either degrees or km)
+Units depend on physical\_distance attribute (km if True, otherwise
+degrees).
 Note: Due to the way we compute the Matern function,
 it is undefined at dist == 0 even if the limit \sphinxhyphen{}\textgreater{} zero is obvious.
 
@@ -4253,7 +4242,7 @@ numpy.ndarray
 \pysigstartsignatures
 \pysiglinewithargsret
 {\sphinxcode{\sphinxupquote{glomar\_gridding.stochastic.}}\sphinxbfcode{\sphinxupquote{draw\_from\_cov}}}
-{\sphinxparam{\DUrole{n}{loc}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cov}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ndraws}\DUrole{o}{=}\DUrole{default_value}{1}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sym\_atol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}05}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_rtol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}06}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_fudge}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}08}}}
+{\sphinxparam{\DUrole{n}{loc}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cov}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ndraws}\DUrole{o}{=}\DUrole{default_value}{1}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sym\_atol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}05}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_rtol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}06}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_thresh}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}08}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
@@ -4296,7 +4285,7 @@ format and not netCDF files
 
 \item {}
 \sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{eigen\_fudge}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} forced minimum value of eigenvalues if negative values are detected
+\sphinxstyleliteralstrong{\sphinxupquote{eigen\_thresh}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} forced minimum value of eigenvalues if negative values are detected
 
 \end{itemize}
 
