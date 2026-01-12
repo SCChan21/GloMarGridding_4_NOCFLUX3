@@ -64,8 +64,8 @@
 
 
 \title{GloMarGridding}
-\date{Dec 16, 2025}
-\release{1.0.1}
+\date{Jan 12, 2026}
+\release{1.1.0}
 \author{NOC Surface Processes}
 \newcommand{\sphinxlogo}{\vbox{}}
 \renewcommand{\releasename}{Release}
@@ -4246,23 +4246,19 @@ numpy.ndarray
 
 \end{fulllineitems}
 
-\index{scipy\_mv\_normal\_draw() (in module glomar\_gridding.stochastic)@\spxentry{scipy\_mv\_normal\_draw()}\spxextra{in module glomar\_gridding.stochastic}}
+\index{draw\_from\_cov() (in module glomar\_gridding.stochastic)@\spxentry{draw\_from\_cov()}\spxextra{in module glomar\_gridding.stochastic}}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{kriging:glomar_gridding.stochastic.scipy_mv_normal_draw}}
+\phantomsection\label{\detokenize{kriging:glomar_gridding.stochastic.draw_from_cov}}
 \pysigstartsignatures
 \pysiglinewithargsret
-{\sphinxcode{\sphinxupquote{glomar\_gridding.stochastic.}}\sphinxbfcode{\sphinxupquote{scipy\_mv\_normal\_draw}}}
-{\sphinxparam{\DUrole{n}{loc}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cov}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ndraws}\DUrole{o}{=}\DUrole{default_value}{1}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_rtol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}06}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_fudge}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}08}}}
+{\sphinxcode{\sphinxupquote{glomar\_gridding.stochastic.}}\sphinxbfcode{\sphinxupquote{draw\_from\_cov}}}
+{\sphinxparam{\DUrole{n}{loc}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cov}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ndraws}\DUrole{o}{=}\DUrole{default_value}{1}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sym\_atol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}05}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_rtol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}06}}\sphinxparamcomma \sphinxparam{\DUrole{n}{eigen\_fudge}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}08}}}
 {}
 \pysigstopsignatures
 \sphinxAtStartPar
-Do a random multivariate normal draw using
-scipy.stats.multivariate\_normal.rvs
-
-\sphinxAtStartPar
-numpy.random.multivariate\_normal can also,
-but fixing seeds are more difficult using numpy
+Do a random multivariate normal draw using numpy, with a fallback to
+scipy.stats.multivariate\_normal.rvs if that fails.
 
 \sphinxAtStartPar
 This function has similar API as GP\_draw with less kwargs.
@@ -4292,6 +4288,10 @@ format and not netCDF files
 
 \item {}
 \sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{sym\_atol}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} absolute tolerance to check symmetry of cov
+
+\item {}
+\sphinxAtStartPar
 \sphinxstyleliteralstrong{\sphinxupquote{eigen\_rtol}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} relative tolerance to negative eigenvalues
 
 \item {}
@@ -4318,7 +4318,7 @@ np.ndarray
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{A} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{random}\PYG{o}{.}\PYG{n}{rand}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{)}
 \PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{cov} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{dot}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,} \PYG{n}{A}\PYG{o}{.}\PYG{n}{T}\PYG{p}{)}
-\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{scipy\PYGZus{}mv\PYGZus{}normal\PYGZus{}draw}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{)}\PYG{p}{,} \PYG{n}{cov}\PYG{p}{,} \PYG{n}{ndraws}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{)}
+\PYG{g+gp}{\PYGZgt{}\PYGZgt{}\PYGZgt{} }\PYG{n}{draw\PYGZus{}from\PYGZus{}cov}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{)}\PYG{p}{,} \PYG{n}{cov}\PYG{p}{,} \PYG{n}{ndraws}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{)}
 \PYG{g+go}{array([[\PYGZhy{}0.35972806, \PYGZhy{}0.51289612,  0.85307028, \PYGZhy{}0.11580307,  0.6677707 ],}
 \PYG{g+go}{       [\PYGZhy{}1.38214628, \PYGZhy{}1.29331638, \PYGZhy{}0.4879436 , \PYGZhy{}1.42310831, \PYGZhy{}0.19369562],}
 \PYG{g+go}{       [\PYGZhy{}1.04502143, \PYGZhy{}1.97686163, \PYGZhy{}2.058605  , \PYGZhy{}1.97202206, \PYGZhy{}2.90116796],}
@@ -6224,7 +6224,7 @@ When estimating covariance matrices, using ellipse\sphinxhyphen{}based methods f
 the results may not be positive\sphinxhyphen{}definite. This can be problematic, for instance
 the Kriging equations may not be solvable as the inverse matrix cannot be
 computed, or simulated states cannot be constructed using
-{\hyperref[\detokenize{kriging:glomar_gridding.stochastic.scipy_mv_normal_draw}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{glomar\_gridding.stochastic.scipy\_mv\_normal\_draw()}}}}}. To account for this,
+\sphinxcode{\sphinxupquote{glomar\_gridding.stochastic.scipy\_mv\_normal\_draw()}}. To account for this,
 \sphinxtitleref{glomar\_gridding} includes a few tools for \sphinxstyleemphasis{fixing} these covariance matrices.
 In general, these methods attempt to coerce the input matrix to be
 positive\sphinxhyphen{}definite by updating the eigenvalues and re\sphinxhyphen{}computing the matrix from
@@ -6995,6 +6995,46 @@ Other methods:
 \sphinxurl{https://academic.oup.com/imajna/article/22/3/329/708688}
 
 \end{itemize}
+
+\end{fulllineitems}
+
+\index{validate\_covariance() (in module glomar\_gridding.covariance\_tools)@\spxentry{validate\_covariance()}\spxextra{in module glomar\_gridding.covariance\_tools}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{misc:glomar_gridding.covariance_tools.validate_covariance}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{glomar\_gridding.covariance\_tools.}}\sphinxbfcode{\sphinxupquote{validate\_covariance}}}
+{\sphinxparam{\DUrole{n}{cov}}\sphinxparamcomma \sphinxparam{\DUrole{n}{sym\_atol}\DUrole{o}{=}\DUrole{default_value}{1e\sphinxhyphen{}05}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Validate that a covariance is square and symmetric.
+
+\sphinxAtStartPar
+If the input is symmetric return itself. If it is close to symmetric (within
+‘sym\_atol’) then return (cov + cov.T) / 2. Otherwise raise an error.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{cov}} (\sphinxstyleliteralemphasis{\sphinxupquote{numpy.ndarray}}) \textendash{} Covariance Matrix
+
+\item {}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{sym\_atol}} (\sphinxstyleliteralemphasis{\sphinxupquote{float}}) \textendash{} absolute tolerance to check symmetry of cov
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+\sphinxstylestrong{cov} \textendash{} Symmetric square covariance matrix
+
+\sphinxlineitem{Return type}
+\sphinxAtStartPar
+numpy.ndarray
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 

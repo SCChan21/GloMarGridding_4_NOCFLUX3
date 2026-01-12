@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 (Unreleased)
+## 1.1.0 (2026-01-12)
 
 Contributors to this version: Joseph Siddons (@jtsiddons, @josidd), Steven Chan (@SCChan21).
 
