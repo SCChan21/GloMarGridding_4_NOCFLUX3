@@ -20,7 +20,21 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
 
 
 class KalmanOut:
-    """class to compute blended forecast and observations"""
+    """
+    class to compute blended forecast and observations
+    variable names follows compute_inv_variance_wgt_mean_kalman
+
+    :param forecast_vector: 1D vector of forecasts
+    :type forecast_vector: np.ndarray
+    :param obs_vector: 1D vector of (gridded) observations
+    :type obs_vector: np.ndarray
+    :param errcov_forecast: 2D matrix of error covariance for forecast_vector
+    :type errcov_forecast: np.ndarray
+    :param errcov_obs: 2D matrix of error covariance for obs_vector
+    :type errcov_forecast: np.ndarray
+    :param cov_forecast_and_obs: covariance between forecast & observations
+    :type cov_forecast_and_obs: np.ndarray
+    """
 
     def __init__(
             self,
