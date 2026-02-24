@@ -4,7 +4,7 @@ import numpy as np
 from numpy import linalg
 
 
-def compute_inverse_via_solve(square_matrix: np.ndarray):
+def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     """
     Solves the linear system for cov_inv
     cov_inv @ cov = np.eye
@@ -19,11 +19,42 @@ def compute_inverse_via_solve(square_matrix: np.ndarray):
     return ans
 
 
+class KalmanOut:
+    """class to compute blended forecast and observations"""
+
+    def __init__(
+            self,
+            forecast_vector: np.ndarray,
+            obs_vector: np.ndarray,
+            errcov_forecast: np.ndarray,
+            errcov_obs: np.ndarray,
+            cov_forecast_and_obs: np.ndarray,
+            ):
+        self.forecast_vector = forecast_vector
+        self.obs_vector = obs_vector
+        self.errcov_forecast = errcov_forecast
+        self.errcov_obs = errcov_obs
+        self.cov_forecast_and_obs = cov_forecast_and_obs
+
+    def compute_outputs(self):
+        """Calls compute_inv_variance_wgt_mean_kalman"""
+        ans = compute_inv_variance_wgt_mean_kalman(
+            self.forecast_vector,
+            self.obs_vector,
+            self.errcov_forecast,
+            self.errcov_obs,
+            self.cov_forecast_and_obs
+        )
+        self.wgt_mean = ans[0]
+        self.errcov = ans[1]
+
+
 def compute_inv_variance_wgt_mean_kalman(
         forecast_vector: np.ndarray,
         obs_vector: np.ndarray,
         errcov_forecast: np.ndarray,
         errcov_obs: np.ndarray,
+        cov_forecast_and_obs: np.ndarray,
     ):
     """
     Compute the inverse variance weighted average of
@@ -38,8 +69,11 @@ def compute_inv_variance_wgt_mean_kalman(
     :type errcov_forecast: np.ndarray
     :param errcov_obs: 2D matrix of error covariance for obs_vector
     :type errcov_forecast: np.ndarray
-    :returns: weighted average of forecast_vector and obs_vector
-    :rtype: np.ndarray
+    :param cov_forecast_and_obs: covariance between forecast & observations
+    :type cov_forecast_and_obs: np.ndarray
+
+    :returns: list with weighted avg and error covariance
+    :rtype: list
     """
     #
     inv_errcov_forecast = compute_inverse_via_solve(errcov_forecast)
@@ -60,8 +94,16 @@ def compute_inv_variance_wgt_mean_kalman(
     if forecast_vector_shape[0] != obs_vector_shape[0]:
         raise ValueError("obs_vector shape inconsistent with forecast_vector")
     #
+    # Weights and error covariance if obs and forecast are uncorrelated
     c_hat = compute_inverse_via_solve(inv_errcov_forecast + inv_errcov_obs)
     kalman_gain = c_hat @ inv_errcov_obs
     forecast_wgt = c_hat @ inv_errcov_forecast
-    ans = kalman_gain @ obs_vector + forecast_wgt @ forecast_vector
-    return ans
+    #
+    # Output weighted mean
+    wgt_mean = kalman_gain @ obs_vector + forecast_wgt @ forecast_vector
+    #
+    # Output error covariance
+    w1w2cov = kalman_gain @ forecast_wgt @ cov_forecast_and_obs
+    errcov = c_hat + (2.0 * np.eye(obs_vector_shape[0])) @ w1w2cov
+    #
+    return [wgt_mean, errcov]
