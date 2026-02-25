@@ -129,3 +129,12 @@ def forecast_t_plus_1(
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
     return ans
+
+
+def main():
+    """MAIN"""
+    print("===MAIN===")
+
+
+if __name__ == "__main__":
+    main()

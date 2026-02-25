@@ -121,3 +121,12 @@ def compute_inv_variance_wgt_mean_kalman(
     errcov = c_hat + (2.0 * np.eye(obs_vector_shape[0])) @ w1w2cov
     #
     return [wgt_mean, errcov]
+
+
+def main():
+    """MAIN"""
+    print("===MAIN===")
+
+
+if __name__ == "__main__":
+    main()
