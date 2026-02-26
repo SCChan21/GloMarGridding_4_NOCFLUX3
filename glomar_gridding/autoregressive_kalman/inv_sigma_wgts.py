@@ -5,9 +5,6 @@ from numpy import linalg
 
 # items to add:
 # - the weights (Kalman gain and forecast weights) should be returned
-# - merge compute_inv_variance_wgt_mean_kalman_ez and
-# compute_inv_variance_wgt_mean_kalman by replacing @ and *
-# with matmul and multiply
 
 
 def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
@@ -81,91 +78,31 @@ class KalmanOut:
                 self.cov_forecast_and_obs = cov_forecast_and_obs
             else:
                 self.cov_forecast_and_obs = np.diag(cov_forecast_and_obs)
-            self.wgt_computer = compute_inv_variance_wgt_mean_kalman_ez
+            self.inv_operator = np.reciprocal
+            self.multiply_operator = np.multiply
+            self.one_maker = np.ones
         else:
             self.errcov_forecast = errcov_forecast
             self.errcov_obs = errcov_obs
             self.cov_forecast_and_obs = cov_forecast_and_obs
-            self.wgt_computer = compute_inv_variance_wgt_mean_kalman
+            self.inv_operator = compute_inverse_via_solve
+            self.multiply_operator = np.matmul
+            self.one_maker = np.eye
 
     def compute_outputs(self):
         """Calls compute_inv_variance_wgt_mean_kalman"""
-        ans = self.wgt_computer(
+        ans = compute_inv_variance_wgt_mean_kalman(
             self.forecast_vector,
             self.obs_vector,
             self.errcov_forecast,
             self.errcov_obs,
-            self.cov_forecast_and_obs
+            self.cov_forecast_and_obs,
+            inv_operator=self.inv_operator,
+            multiply_operator=self.multiply_operator,
+            one_maker=self.one_maker,
         )
         self.wgt_mean = ans[0]
         self.errcov = ans[1]
-
-
-def compute_inv_variance_wgt_mean_kalman_ez(
-        forecast_vector: np.ndarray,
-        obs_vector: np.ndarray,
-        errcov_forecast: np.ndarray,
-        errcov_obs: np.ndarray,
-        cov_forecast_and_obs: np.ndarray,
-    ):
-    """
-    Compute the inverse variance weighted average of
-    forecast_vector & obs_vector using provided error covariances
-    errcov_forecast & errcov_obs
-
-    :param forecast_vector: 1D vector of forecasts
-    :type forecast_vector: np.ndarray
-    :param obs_vector: 1D vector of (gridded) observations
-    :type obs_vector: np.ndarray
-    :param errcov_forecast: 1D matrix of variance for forecast_vector
-    :type errcov_forecast: np.ndarray
-    :param errcov_obs: 1D matrix of variance for obs_vector
-    :type errcov_forecast: np.ndarray
-    :param cov_forecast_and_obs: 1D covariance between forecast & observations
-    :type cov_forecast_and_obs: np.ndarray
-
-    :returns: list with weighted avg and error covariance
-    :rtype: list
-    """
-    #
-    print('Computing inverse errcov_forecast')
-    inv_errcov_forecast = np.reciprocal(errcov_forecast)
-    print('Computing inverse errcov_obs')
-    inv_errcov_obs = np.reciprocal(errcov_obs)
-    #
-    forecast_vector_shape = forecast_vector.shape
-    if len(forecast_vector_shape) != 1:
-        raise ValueError("forecast_vector is not 1D vector")
-    if errcov_forecast.shape[0] != forecast_vector_shape[0]:
-        raise ValueError("forecast_vector shape inconsistent with errcov_forecast")  # noqa: E501
-    #
-    obs_vector_shape = obs_vector.shape
-    if len(obs_vector_shape) != 1:
-        raise ValueError("obs_vector is not 1D vector")
-    if errcov_obs.shape[0] != obs_vector_shape[0]:
-        raise ValueError("obs_vector shape inconsistent with errcov_obs")
-    #
-    if forecast_vector_shape[0] != obs_vector_shape[0]:
-        raise ValueError("obs_vector shape inconsistent with forecast_vector")
-    #
-    # Weights and error covariance if obs and forecast are uncorrelated
-    print('Computing c_hat')
-    c_hat = np.reciprocal(inv_errcov_forecast + inv_errcov_obs)
-    print('Computing kalman_gain')
-    kalman_gain = c_hat * inv_errcov_obs
-    print('Computing forecast_wgt')
-    forecast_wgt = c_hat * inv_errcov_forecast
-    #
-    # Output weighted mean
-    print('Computing weighted mean')
-    wgt_mean = kalman_gain * obs_vector + forecast_wgt * forecast_vector
-    #
-    # Output error covariance
-    print('Computing updating uncertainities')
-    w1w2cov = kalman_gain * forecast_wgt * cov_forecast_and_obs
-    errcov = c_hat + 2.0 * w1w2cov
-    #
-    return [wgt_mean, errcov]
 
 
 def compute_inv_variance_wgt_mean_kalman(
@@ -174,6 +111,9 @@ def compute_inv_variance_wgt_mean_kalman(
         errcov_forecast: np.ndarray,
         errcov_obs: np.ndarray,
         cov_forecast_and_obs: np.ndarray,
+        inv_operator: callable = compute_inverse_via_solve,
+        multiply_operator: callable = np.matmul,
+        one_maker: callable = np.eye,
     ):
     """
     Compute the inverse variance weighted average of
@@ -196,9 +136,9 @@ def compute_inv_variance_wgt_mean_kalman(
     """
     #
     print('Computing inverse errcov_forecast')
-    inv_errcov_forecast = compute_inverse_via_solve(errcov_forecast)
+    inv_errcov_forecast = inv_operator(errcov_forecast)
     print('Computing inverse errcov_obs')
-    inv_errcov_obs = compute_inverse_via_solve(errcov_obs)
+    inv_errcov_obs = inv_operator(errcov_obs)
     #
     forecast_vector_shape = forecast_vector.shape
     if len(forecast_vector_shape) != 1:
@@ -217,20 +157,29 @@ def compute_inv_variance_wgt_mean_kalman(
     #
     # Weights and error covariance if obs and forecast are uncorrelated
     print('Computing c_hat')
-    c_hat = compute_inverse_via_solve(inv_errcov_forecast + inv_errcov_obs)
+    c_hat = inv_operator(inv_errcov_forecast + inv_errcov_obs)
     print('Computing kalman_gain')
-    kalman_gain = c_hat @ inv_errcov_obs
+    kalman_gain = multiply_operator(c_hat, inv_errcov_obs)
     print('Computing forecast_wgt')
-    forecast_wgt = c_hat @ inv_errcov_forecast
+    forecast_wgt = multiply_operator(c_hat, inv_errcov_forecast)
     #
     # Output weighted mean
     print('Computing weighted mean')
-    wgt_mean = kalman_gain @ obs_vector + forecast_wgt @ forecast_vector
+    wgt_mean = multiply_operator(kalman_gain, obs_vector)
+    wgt_mean += multiply_operator(forecast_wgt, forecast_vector)
     #
     # Output error covariance
     print('Computing updating uncertainities')
-    w1w2cov = kalman_gain @ forecast_wgt @ cov_forecast_and_obs
-    errcov = c_hat + (2.0 * np.eye(obs_vector_shape[0])) @ w1w2cov
+    w1w2cov = multiply_operator(
+        multiply_operator(
+            kalman_gain, forecast_wgt
+        ),
+        cov_forecast_and_obs)
+    errcov = c_hat
+    errcov += multiply_operator(
+        2.0 * one_maker(obs_vector_shape[0]),
+        w1w2cov
+    )
     #
     return [wgt_mean, errcov]
 
