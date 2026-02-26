@@ -70,9 +70,9 @@ class Autoregressive1Forecast:
         #
         if self.independent_var_t.shape[0] != self.errcov_independent_var_t.shape[0]:  # noqa: E501
             raise ValueError("independent_var_t shape inconsistent with errcov_independent_var_t")  # noqa: E501
-        if self.independent_var_t.shape[0] != self.climatology_mean.shape[1]:
+        if self.independent_var_t.shape[0] != self.climatology_mean.shape[0]:
             raise ValueError("independent_var_t shape inconsistent with climatology_mean")  # noqa: E501
-        if self.climatology_variance.shape[0] != self.climatology_mean.shape[1]:
+        if self.climatology_variance.shape[0] != self.climatology_mean.shape[0]:
             raise ValueError("climatology_variance shape inconsistent with climatology_mean")  # noqa: E501
 
     def compute_forecast(self):
