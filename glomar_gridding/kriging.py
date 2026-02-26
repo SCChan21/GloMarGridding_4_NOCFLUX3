@@ -437,9 +437,10 @@ class SimpleKriging(Kriging):
         obs_grid_cov = self.covariance[self.idx, :]
 
         kriging_weights = self.kriging_weights @ obs_grid_cov
+
         if full_covariance:
-            uncert = adjust_small_negative(self.covariance - kriging_weights)
-            return uncert
+            return self.covariance - kriging_weights
+
         dz_squared = np.diag(self.covariance - kriging_weights)
         dz_squared = adjust_small_negative(dz_squared)
         uncert = np.sqrt(dz_squared)
@@ -713,9 +714,7 @@ class OrdinaryKriging(Kriging):
         kriging_weights = self.kriging_weights @ obs_grid_cov
 
         if full_covariance:
-            uncert_squared = self.covariance - kriging_weights - np.diag(alpha)
-            uncert_squared = adjust_small_negative(uncert_squared)
-            return uncert_squared
+            return self.covariance - kriging_weights - np.diag(alpha)
 
         uncert_squared = np.diag(self.covariance - kriging_weights) - alpha
         uncert_squared = adjust_small_negative(uncert_squared)
