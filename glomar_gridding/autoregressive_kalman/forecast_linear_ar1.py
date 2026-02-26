@@ -181,7 +181,6 @@ def forecast_t_plus_1(
     return ans
 
 
-
 def main():
     """MAIN"""
     print("===MAIN===")
