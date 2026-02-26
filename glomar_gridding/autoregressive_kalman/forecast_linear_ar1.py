@@ -6,6 +6,10 @@ output new uncertainities
 import numpy as np
 
 
+# items to add:
+# - forecast_t_plus_1_old is obsolete
+
+
 class Autoregressive1Forecast:
     """
     Class to compute AR1 forecast
