@@ -88,7 +88,7 @@ class Autoregressive1Forecast:
         self.errcov = ans[1]
 
 
-def forecast_t_plus_1(
+def forecast_t_plus_1_old(
     independent_var_t: np.ndarray,
     errcov_independent_var_t: np.ndarray,
     lag_1_autocor: np.ndarray,
@@ -129,6 +129,52 @@ def forecast_t_plus_1(
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
     return ans
+
+
+def forecast_t_plus_1(
+    independent_var_t: np.ndarray,
+    errcov_independent_var_t: np.ndarray,
+    lag_1_autocor: np.ndarray,
+    climatology_mean: np.ndarray,
+    climatology_variance: np.ndarray,):
+    """
+    Compute AR1 forecast and estimate uncertainities
+
+    :param independent_var_t: 1D vector of independent variables for t
+    :type independent_var_t: np.ndarray
+
+    :param errcov_independent_var_t: 2D errcov for independent_var_t
+    :type errcov_independent_var_t: np.ndarray
+
+    :param lag_1_autocor: 1D vector of lag correlation
+    :type lag_1_autocor: np.ndarray
+
+    :param climatology_mean: 1D climatological mean for independent_var
+    :type climatology_mean: np.ndarray
+
+    :param climatology_variance: 1D climatological variance for independent_var
+    :type climatology_variance: np.ndarray
+
+    :returns: list with AR1 forecast and error covariance
+    :rtype: list
+    """
+    #
+    lag_1_autocor_squared = lag_1_autocor * lag_1_autocor
+    #
+    print('Computing forecast')
+    diff_with_climatology = independent_var_t - climatology_mean
+    forecast_t_plus_1_anomaly = (lag_1_autocor * diff_with_climatology.T).T
+    forecast_t_plus_1_anomaly += climatology_mean
+    #
+    print('Computing uncertainities')
+    climvar_mult = np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
+    errcov_clim = (climvar_mult * climatology_variance.T).T
+    errcov_uncert_ind_var = (lag_1_autocor * errcov_independent_var_t.T).T
+    errcov = errcov_clim + errcov_uncert_ind_var
+    #
+    ans = [forecast_t_plus_1_anomaly, errcov]
+    return ans
+
 
 
 def main():
