@@ -3,9 +3,6 @@
 import numpy as np
 from numpy import linalg
 
-# items to add:
-# - the weights (Kalman gain and forecast weights) should be returned
-
 
 def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     """
@@ -103,6 +100,8 @@ class KalmanOut:
         )
         self.wgt_mean = ans[0]
         self.errcov = ans[1]
+        self.kalman_gain_from_new_obs = ans[2]
+        self.wgts_from_ar_forecast = ans[3]
 
 
 def compute_inv_variance_wgt_mean_kalman(
@@ -181,7 +180,7 @@ def compute_inv_variance_wgt_mean_kalman(
         w1w2cov
     )
     #
-    return [wgt_mean, errcov]
+    return [wgt_mean, errcov, kalman_gain, forecast_wgt]
 
 
 def main():
