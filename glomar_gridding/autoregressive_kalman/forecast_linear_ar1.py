@@ -179,7 +179,7 @@ def forecast_t_plus_1(
     climvar_mult = np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
     errcov_clim = (climvar_mult * climatology_variance.T).T
     errcov_uncert_ind_var = (lag_1_autocor * errcov_independent_var_t.T).T
-    errcov = errcov_clim + errcov_uncert_ind_var
+    errcov = np.diag(errcov_clim) + errcov_uncert_ind_var
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
     return ans
