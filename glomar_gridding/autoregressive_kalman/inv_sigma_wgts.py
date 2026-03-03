@@ -168,7 +168,7 @@ def compute_inv_variance_wgt_mean_kalman_old(
     print('Computing kalman_gain')
     kalman_gain = multiply_operator(c_hat, inv_errcov_obs)
     print('Computing forecast_wgt')
-    forecast_wgt = np.eye(kalman_gain.shape) - kalman_gain
+    forecast_wgt = one_maker(kalman_gain.shape) - kalman_gain
     # The stupid way to compute it... even if they are the same
     # forecast_wgt = multiply_operator(c_hat, inv_errcov_forecast)
     #
@@ -256,16 +256,17 @@ def compute_inv_variance_wgt_mean_kalman(
     print('Computing kalman_gain')
     kalman_gain = multiply_operator(errcov_forecast, inv_sum_of_errcovs)
     print('Computing forecast_wgt')
-    forecast_wgt = np.eye(kalman_gain.shape[0]) - kalman_gain
+    forecast_wgt = one_maker(kalman_gain.shape[0]) - kalman_gain
     #
     # Output weighted mean
     print('Computing weighted mean')
-    wgt_mean = kalman_gain @ (obs_vector - forecast_vector) + forecast_vector
+    wgt_mean = multiply_operator(kalman_gain, (obs_vector - forecast_vector))
+    wgt_mean += forecast_vector
     #
     # Output error covariance
     print('Computing updating uncertainities')
     errcov = multiply_operator(
-        np.eye(inv_sum_of_errcovs.shape) - kalman_gain,
+        one_maker(inv_sum_of_errcovs.shape[0]) - kalman_gain,
         errcov_forecast
     )
     if cov_forecast_and_obs is not None:
