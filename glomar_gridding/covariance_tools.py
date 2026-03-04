@@ -600,14 +600,14 @@ def laloux_clip(
     numpy.ndarray
         Adjusted covariance matrix.
 
+    See Also
+    --------
+    :py:func:`glomar_gridding.covariance_tools.explained_variance_clip`
+
     References
     ----------
     - [Laloux]_
     - [Bun]_
-
-    See Also
-    --------
-    :py:func:`glomar_gridding.covariance_tools.explained_variance_clip`
     """
     num_grid_pts = num_grid_pts or cov.shape[0]
     vars = np.diag(cov)
@@ -701,15 +701,15 @@ def explained_variance_clip(
     numpy.ndarray
         Adjusted covariance matrix.
 
+    See Also
+    --------
+    :py:func:`glomar_gridding.covariance_tools.laloux_clip`
+
     References
     ----------
     - [Laloux]_
     - [Jolliffe]_
     - [Wilks]_
-
-    See Also
-    --------
-    :py:func:`glomar_gridding.covariance_tools.laloux_clip`
     """
     if not 0.0 < target_variance_fraction <= 1.0:
         raise ValueError("'target_variance_fraction' must be (0, 1.0]")
