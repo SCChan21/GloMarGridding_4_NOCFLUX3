@@ -797,7 +797,12 @@ def get_spatial_mean(
 
 def gpu_check():
     """
-    Check if NVIDIA GPU(s) exist.
+    Check if NVIDIA GPU(s) exist using standard libraries
+
+    Catch-22: checks based on cuda, pytorch, cupy,
+    tensorflow etc does not work! Can't check something
+    using something that does not exist!
+
     All systems with NVIDIA GPUs should have nvidia-smi
 
     Parameters
