@@ -30,7 +30,7 @@ import polars as pl
 import xarray as xr
 from polars._typing import ClosedInterval
 
-import subprocess
+import subprocess  # noqa: S404
 
 from glomar_gridding.constants import (
     KM_TO_NM,
@@ -815,7 +815,7 @@ def gpu_check():
         True - if GPU exists, False otherwise
     """
     try:
-        subprocess.check_output("nvidia-smi")
+        subprocess.check_output("nvidia-smi")  # noqa: S607
     except Exception:
         return False
     return True
