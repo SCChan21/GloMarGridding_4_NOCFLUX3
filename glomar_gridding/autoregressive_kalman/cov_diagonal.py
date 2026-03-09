@@ -11,7 +11,7 @@ restore_diag_only_rows:
 
 import numpy as np
 import scipy as sp
-# from typing import Union
+from typing import Union
 
 EFFECTIVELY_ZERO_DEFAULT = 1E-6
 
@@ -126,7 +126,11 @@ def restore_diag_only_rows(
 def diag_and_nondiag_rows_subsampler(
         cov: np.ndarray,
         zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        return_subsampled_arr: bool = True,
+    ) -> tuple[np.ndarray,
+               Union[None, np.ndarray],
+               np.ndarray,
+               Union[None, np.ndarray]]:
     """
     Docstring for diag_and_nondiag_rows_subsampler
 
@@ -179,14 +183,20 @@ def diag_and_nondiag_rows_subsampler(
     #
     diag_cov = np.diag(cov)
     diag_cov = np.array(diag_cov)
-    isolated_diag_vals = np.matmul(
-        d_diagonal_only.toarray(),
-        diag_cov,
-    )
-    the_denser_parts = np.matmul(
-        np.matmul(d_off_diagonal.toarray(), cov),
-        d_off_diagonal.toarray().T,
-    )
+    if return_subsampled_arr:
+        # isolated_diag_vals = np.matmul(
+        #     d_diagonal_only.toarray(),
+        #     diag_cov,
+        # )
+        # the_denser_parts = np.matmul(
+        #     np.matmul(d_off_diagonal.toarray(), cov),
+        #     d_off_diagonal.toarray().T,
+        # )
+        isolated_diag_vals = d_diagonal_only @ diag_cov
+        the_denser_parts = d_off_diagonal @ cov @ d_off_diagonal.T
+    else:
+        isolated_diag_vals = None
+        the_denser_parts = None
     #
     return (
         d_off_diagonal,
