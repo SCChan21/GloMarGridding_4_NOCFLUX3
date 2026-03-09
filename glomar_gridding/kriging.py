@@ -229,7 +229,7 @@ class Kriging(ABC):
         Returns
         -------
         uncert : numpy.ndarray
-            The Kriging uncertainty.
+            The Kriging uncertainty or the full Kriging covariance.
         """
         raise NotImplementedError(
             "`get_uncertainty` not implemented for default class"
@@ -434,7 +434,7 @@ class SimpleKriging(Kriging):
         Returns
         -------
         uncert : numpy.ndarray
-            The Kriging uncertainty or the full Kriging covaiance.
+            The Kriging uncertainty or the full Kriging covariance.
         """
         if not hasattr(self, "kriging_weights"):
             raise KeyError("Please compute Kriging Weights first")
@@ -705,7 +705,7 @@ class OrdinaryKriging(Kriging):
         Returns
         -------
         uncert : numpy.ndarray
-            The Kriging uncertainty  or the full Kriging covaiance.
+            The Kriging uncertainty or the full Kriging covaiance.
         """
         if not hasattr(self, "kriging_weights"):
             raise KeyError("Please compute Kriging Weights first")
