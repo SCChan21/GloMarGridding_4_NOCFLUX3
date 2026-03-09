@@ -810,7 +810,7 @@ def gpu_check():
         True - if GPU exists, False otherwise
     """
     try:
-        subprocess.check_output("nvidia-smi")
+        subprocess.check_output('nvidia-smi')  # noqa: S607
     except Exception:
         return False
     return True
