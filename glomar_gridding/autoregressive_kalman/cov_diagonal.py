@@ -10,11 +10,15 @@ restore_diag_only_rows:
 """
 
 import numpy as np
+import scipy as sp
+# from typing import Union
+
+EFFECTIVELY_ZERO_FOR_TEMP = 1E-6
 
 
 def _more_than_one_element(
         row: np.ndarray,
-        zero_threshold: float = 1E-6):
+        zero_threshold: float = EFFECTIVELY_ZERO_FOR_TEMP):
     """Check if 1D vector more than one non-zero element"""
     return np.sum(row > zero_threshold) > 1
 
@@ -117,6 +121,79 @@ def restore_diag_only_rows(
     print(f"{np.sum(diag_vals) = }")
     print(f"{np.sum(old_diag_vals) = }")
     return new_cov_arr
+
+
+def diag_and_nondiag_rows_subsampler(
+        cov: np.ndarray,
+        zero_threshold: float = EFFECTIVELY_ZERO_FOR_TEMP,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Docstring for diag_and_nondiag_rows_subsampler
+
+    :param cov: covariance matrix with possible diagonal only elements
+    :type cov: np.ndarray
+    :return:
+        a tuple with four matrices
+        - d_off_diagonal: sampling matrix for the off-diagonal rows
+        - the_denser_parts: a (somewhat denser) subsampled by that matrix
+        - d_diagonal_only: the diagonal only rows
+        - isolated_diag_vals: vector with diagonal values of those rows
+    :rtype: tuple[ndarray, ndarray, ndarray, ndarray]
+    """
+    n_rows = cov.shape[0]
+    print(f"{cov.shape = }")
+    print(f"{cov.device = }; {cov.device.id = }")
+    n_validrows = 0
+    #
+    # This returns True for rows that have off diagonal elements
+    ans = np.apply_along_axis(
+        lambda row: _more_than_one_element(
+            row,
+            zero_threshold=zero_threshold,
+        ),
+        0, cov)
+    n_validrows = int(np.sum(ans))
+    n_diag_only = cov.shape[0] - n_validrows
+    print(f"{n_validrows = }")
+    print(f"{n_diag_only = }")
+    if n_validrows < 1:
+        raise ValueError(f"{n_validrows} must be at >= 1")
+    #
+    d_diagonal_only = np.zeros((n_diag_only, cov.shape[0]), dtype=bool)
+    d_off_diagonal = np.zeros((n_validrows, cov.shape[0]), dtype=bool)
+    row_count_off_diagonal = 0
+    row_count_diagonal_only = 0
+    for i in range(n_rows):
+        if ans[i] == 0:
+            d_diagonal_only[row_count_diagonal_only, i] = True
+            row_count_diagonal_only += 1
+        else:
+            d_off_diagonal[row_count_off_diagonal, i] = True
+            row_count_off_diagonal += 1
+    d_diagonal_only = sp.sparse.csr_matrix(d_diagonal_only)
+    d_off_diagonal = sp.sparse.csr_matrix(d_off_diagonal)
+    print(f"{type(d_off_diagonal) = }")
+    print(f"{d_off_diagonal.shape = }")
+    print(f"{type(d_diagonal_only) = }")
+    print(f"{d_diagonal_only.shape = }")
+    #
+    diag_cov = np.diag(cov)
+    diag_cov = np.array(diag_cov)
+    isolated_diag_vals = np.matmul(
+        d_diagonal_only.toarray(),
+        diag_cov,
+    )
+    the_denser_parts = np.matmul(
+        np.matmul(d_off_diagonal.toarray(), cov),
+        d_off_diagonal.toarray().T,
+    )
+    #
+    return (
+        d_off_diagonal,
+        the_denser_parts,
+        d_diagonal_only,
+        isolated_diag_vals,
+    )
 
 
 def main():
