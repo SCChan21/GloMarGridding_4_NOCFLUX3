@@ -216,10 +216,15 @@ class Kriging(ABC):
         raise NotImplementedError("`solve` not implemented for default class")
 
     @abstractmethod
-    def get_uncertainty(self) -> np.ndarray:
+    def get_uncertainty(self, full_covariance: bool = False) -> np.ndarray:
         """
         Compute the kriging uncertainty. This requires the attribute
         `kriging_weights` to be computed.
+
+        Parameters
+        ----------
+        full_covariance : bool
+            Return the full Kriging covariance if True. Defaults to False.
 
         Returns
         -------
