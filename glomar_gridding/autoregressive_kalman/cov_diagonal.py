@@ -13,12 +13,12 @@ import numpy as np
 import scipy as sp
 # from typing import Union
 
-EFFECTIVELY_ZERO_FOR_TEMP = 1E-6
+EFFECTIVELY_ZERO_DEFAULT = 1E-6
 
 
 def _more_than_one_element(
         row: np.ndarray,
-        zero_threshold: float = EFFECTIVELY_ZERO_FOR_TEMP):
+        zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT):
     """Check if 1D vector more than one non-zero element"""
     return np.sum(row > zero_threshold) > 1
 
@@ -125,7 +125,7 @@ def restore_diag_only_rows(
 
 def diag_and_nondiag_rows_subsampler(
         cov: np.ndarray,
-        zero_threshold: float = EFFECTIVELY_ZERO_FOR_TEMP,
+        zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Docstring for diag_and_nondiag_rows_subsampler
