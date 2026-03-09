@@ -30,7 +30,6 @@ import polars as pl
 import xarray as xr
 from polars._typing import ClosedInterval
 
-
 from glomar_gridding.constants import (
     KM_TO_NM,
     NM_PER_LAT,
