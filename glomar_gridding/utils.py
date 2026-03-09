@@ -30,6 +30,8 @@ import polars as pl
 import xarray as xr
 from polars._typing import ClosedInterval
 
+import subprocess
+
 from glomar_gridding.constants import (
     KM_TO_NM,
     NM_PER_LAT,
@@ -791,3 +793,24 @@ def get_spatial_mean(
     invcov = ones.T @ np.linalg.inv(covx)
 
     return float(1 / (invcov @ ones) * (invcov @ grid_obs))
+
+
+def gpu_check():
+    """
+    Check if NVIDIA GPU(s) exist.
+    All systems with NVIDIA GPUs should have nvidia-smi
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    bool:
+        True - if GPU exists, False otherwise
+    """
+    try:
+        subprocess.check_output('nvidia-smi')
+    except Exception:
+        return False
+    return True
