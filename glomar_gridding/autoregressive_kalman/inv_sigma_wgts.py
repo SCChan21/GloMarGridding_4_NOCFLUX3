@@ -2,8 +2,11 @@
 
 import numpy as np
 from numpy import linalg
+import scipy as sp
 
 from typing import Union
+
+EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
 
 
 def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
@@ -31,26 +34,22 @@ def check_1d(a: np.ndarray):
     raise ValueError('a is not 1 or 2D')
 
 
+def matmul(
+        a: Union[np.ndarray, sp.sparse.sparray],
+        b: Union[np.ndarray, sp.sparse.sparray],
+    ):
+    """
+    Matrix multiplication
+    - np.matmul does not work with sp.sparse.sparray
+    - Can't use @ when it needs to mix with np.multiply
+    """
+    return a @ b
+
+
 class KalmanOut:
     """
     class to compute blended forecast and observations
     variable names follows compute_inv_variance_wgt_mean_kalman
-
-    :param forecast_vector: 1D vector of forecasts
-    :type forecast_vector: np.ndarray
-    :param obs_vector: 1D vector of (gridded) observations
-    :type obs_vector: np.ndarray
-    :param errcov_forecast: 2D matrix of error covariance for forecast_vector
-    :type errcov_forecast: np.ndarray
-    :param errcov_obs: 2D matrix of error covariance for obs_vector
-    :type errcov_forecast: np.ndarray
-    :param cov_forecast_and_obs: covariance between forecast & observations
-    :type cov_forecast_and_obs: np.ndarray
-
-    :param ez_covariances: ignore off-diagonals of errcov_forecast,
-        errcov_obs and cov_forecast_and_obs if set to True, default True
-    :type ez_covariances: bool
-
     """
 
     def __init__(
@@ -62,9 +61,27 @@ class KalmanOut:
             cov_forecast_and_obs: np.ndarray,
             ez_covariances: bool = True,
             ):
+        """
+        __init__ for KalmanOut class
+
+        :param forecast_vector: 1D vector of forecasts
+        :type forecast_vector: np.ndarray
+        :param obs_vector: 1D vector of (gridded) observations
+        :type obs_vector: np.ndarray
+        :param errcov_forecast: 2D matrix of errcov for forecast_vector
+        :type errcov_forecast: np.ndarray
+        :param errcov_obs: 2D matrix of errcov for obs_vector
+        :type errcov_forecast: np.ndarray
+        :param cov_forecast_and_obs: covariance between forecast & observations
+        :type cov_forecast_and_obs: np.ndarray
+        :param ez_covariances: ignore off-diagonals of errcov_forecast,
+            errcov_obs and cov_forecast_and_obs if set to True, default True
+        :type ez_covariances: bool
+        """
         self.forecast_vector = forecast_vector
         self.obs_vector = obs_vector
         if ez_covariances:
+            self.ez_covariances = True
             if check_1d(errcov_forecast):
                 self.errcov_forecast = errcov_forecast
             else:
@@ -81,12 +98,51 @@ class KalmanOut:
             self.multiply_operator = np.multiply
             self.one_maker = np.ones
         else:
+            self.ez_covariances = False
             self.errcov_forecast = errcov_forecast
             self.errcov_obs = errcov_obs
             self.cov_forecast_and_obs = cov_forecast_and_obs
             self.inv_operator = compute_inverse_via_solve
-            self.multiply_operator = np.matmul
+            self.multiply_operator = matmul
             self.one_maker = np.eye
+
+    def sparse_approx_4_errcov(
+            self,
+            sparse_threshold: float = EFFECTIVELY_ZERO_VAR_DEFAULT,
+            convert2sparse: bool = True,
+        ):
+        """
+        Setting small elements of self.errcov_obs and errcov_forecast to zero
+        as defined by sparse_threshold value
+
+        If there are small values in the diagonals
+
+        This reduces memory footprint and may make block-splitting
+        by cov_diagonal easier.
+
+        It is not intended to be use for ez_covariance mode (?).
+        This is only used to handle situations that the error covariances
+        are big.
+
+        :param sparse_threshold: off-diagonal values to set to zero
+        :type sparse_threshold: float
+        :param convert2sparse: convert array to scipy sparse array?
+        :type convert2sparse: bool
+        """
+        if self.ez_covariances:
+            err_msg = 'This method is not intended to be use with '
+            err_msg += 'non-2D error covariances/ez_covariances.'
+            raise ValueError(err_msg)
+        self.errcov_forecast = small_elements_2_zero_and_sparse(
+            self.errcov_forecast,
+            sparse_threshold=sparse_threshold,
+            convert2sparse=convert2sparse,
+        )
+        self.errcov_obs = small_elements_2_zero_and_sparse(
+            self.errcov_obs,
+            sparse_threshold=sparse_threshold,
+            convert2sparse=convert2sparse,
+        )
 
     def compute_outputs(self):
         """Calls compute_inv_variance_wgt_mean_kalman"""
@@ -113,7 +169,7 @@ def compute_inv_variance_wgt_mean_kalman_old(
         errcov_obs: np.ndarray,
         cov_forecast_and_obs: Union[np.ndarray, None] = None,
         inv_operator: callable = compute_inverse_via_solve,
-        multiply_operator: callable = np.matmul,
+        multiply_operator: callable = matmul,
         one_maker: callable = np.eye,
     ):
     """
@@ -201,7 +257,7 @@ def compute_inv_variance_wgt_mean_kalman(
         errcov_obs: np.ndarray,
         cov_forecast_and_obs: Union[np.ndarray, None] = None,
         inv_operator: callable = compute_inverse_via_solve,
-        multiply_operator: callable = np.matmul,
+        multiply_operator: callable = matmul,
         one_maker: callable = np.eye,
     ):
     """
@@ -281,6 +337,37 @@ def compute_inv_variance_wgt_mean_kalman(
         )
     #
     return [wgt_mean, errcov, kalman_gain, forecast_wgt]
+
+
+def small_elements_2_zero_and_sparse(
+        arr: np.ndarray,
+        sparse_threshold: float = EFFECTIVELY_ZERO_VAR_DEFAULT,
+        leave_diagonal_alone: bool = True,
+        convert2sparse: bool = True,
+    ) -> Union[np.ndarray, sp.sparse.sparray]:
+    """
+    :param arr: array to be manipulated
+    :type arr: np.ndarray
+    :param sparse_threshold: threshold in which values less than to be to set 0
+    :type sparse_threshold: float
+    :param leave_diagonal_alone: Should diagonals be modified as well?
+    :type leave_diagonal_alone: bool
+    :param convert2sparse: Should output be stored as sparse array instant
+    :type convert2sparse: bool
+
+    :returns: sparse array
+    :rtype: Union[np.ndarray, sp.sparse.sparray]
+    """
+    if len(arr.shape) != 2:
+        raise ValueError('This function accepts 2D arrays only.')
+    if leave_diagonal_alone:
+        gaid = np.diag(arr)
+    arr[arr < sparse_threshold] = 0.0
+    if leave_diagonal_alone:
+        np.fill_diagonal(arr, gaid)
+    if convert2sparse:
+        arr = sp.sparse.csc_array(arr)
+    return arr
 
 
 def main():
