@@ -705,7 +705,7 @@ class OrdinaryKriging(Kriging):
         Returns
         -------
         uncert : numpy.ndarray
-            The Kriging uncertainty or the full Kriging covaiance.
+            The Kriging uncertainty or the full Kriging covariance.
         """
         if not hasattr(self, "kriging_weights"):
             raise KeyError("Please compute Kriging Weights first")
