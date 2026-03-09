@@ -1,16 +1,10 @@
 """util"""
-import subprocess  # noqa: S404
+import GPUtil
 
 
 def gpu_check():
     """
-    Check if NVIDIA GPU(s) exist using standard libraries
-
-    Catch-22: checks based on cuda, pytorch, cupy,
-    tensorflow etc does not work! Can't check something
-    using something that does not exist!
-
-    All systems with NVIDIA GPUs should have nvidia-smi
+    Check if NVIDIA GPU(s) exist using GPUtil
 
     Parameters
     ----------
@@ -18,14 +12,14 @@ def gpu_check():
 
     Returns
     -------
-    bool:
-        True - if GPU exists, False otherwise
+    ans: int
+        Number of NVIDIA GPU devices, 0 if there are none
+        Does not work for other brands like Intel and AMD etc.
+        1 trillion market cap, eh?
     """
-    try:
-        subprocess.check_output("nvidia-smi")  # noqa: S607
-    except Exception:
-        return False
-    return True
+    n_devices = GPUtil.getGPUs()
+    ans = len(n_devices)
+    return ans
 
 
 def main():
