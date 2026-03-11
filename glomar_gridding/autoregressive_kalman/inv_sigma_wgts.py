@@ -8,7 +8,8 @@ from typing import Union
 
 from . import cov_diagonal as cd
 
-EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
+# EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
+EFFECTIVELY_ZERO_VAR_DEFAULT = 1E-6
 
 
 def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
