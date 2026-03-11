@@ -178,7 +178,9 @@ def forecast_t_plus_1(
     print('Computing uncertainities')
     climvar_mult = np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
     errcov_clim = (climvar_mult * climatology_variance.T).T
-    errcov_uncert_ind_var = (lag_1_autocor * errcov_independent_var_t.T).T
+    errcov_uncert_ind_var = (np.sqrt(lag_1_autocor) * errcov_independent_var_t.T).T  # noqa: E501
+    errcov_uncert_ind_var = (errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T).T
+    # errcov_uncert_ind_var = np.diag(np.sqrt(lag_1_autocor)) @ errcov_independent_var_t @ np.diag(np.sqrt(lag_1_autocor))  # noqa: E501
     errcov = np.diag(errcov_clim) + errcov_uncert_ind_var
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
