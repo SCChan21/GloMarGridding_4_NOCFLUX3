@@ -6,13 +6,15 @@ import scipy as sp
 
 from typing import Union
 
+from . import cov_diagonal as cd
+
 EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
 
 
 def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     """
     Solves the linear system for cov_inv
-    cov_inv @ cov = np.eye
+    cov @ cov_inv = np.eye
     """
     arr_shape = square_matrix.shape
     if len(arr_shape) != 2:
@@ -20,7 +22,18 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     if arr_shape[0] != arr_shape[1]:
         raise ValueError("square_matrix is not square matrix")
     the_eye = np.eye(arr_shape[0])
-    ans = linalg.solve(square_matrix, the_eye)
+    print(type(square_matrix))
+    if isinstance(square_matrix, np.ndarray):
+        print('square_matrix is np.ndarray')
+        ans = linalg.solve(square_matrix, the_eye)
+    elif isinstance(square_matrix, sp.sparse.sparray):
+        print('sp.sparse.sparray detected, using toarray() method.')
+        ans = linalg.solve(square_matrix.toarray(), the_eye)
+    elif isinstance(square_matrix, sp.sparse.spmatrix):
+        print('sp.sparse.spmatrix detected, using toarray() method.')
+        ans = linalg.solve(square_matrix.toarray(), the_eye)
+    else:
+        raise ValueError(f"Unknown type {type(square_matrix)}")
     return ans
 
 
@@ -362,12 +375,128 @@ def small_elements_2_zero_and_sparse(
         raise ValueError('This function accepts 2D arrays only.')
     if leave_diagonal_alone:
         gaid = np.diag(arr)
-    arr[arr < sparse_threshold] = 0.0
+    arr[np.abs(arr) < sparse_threshold] = 0.0
     if leave_diagonal_alone:
         np.fill_diagonal(arr, gaid)
     if convert2sparse:
         arr = sp.sparse.csc_array(arr)
     return arr
+
+
+class KalmanOutUncorrCorrSplit:
+    """
+    class to compute blended forecast and observations
+    This splits the error covariances into diagonal and non-diagonal bits
+    """
+
+    def __init__(
+            self,
+            forecast_vector: np.ndarray,
+            obs_vector: np.ndarray,
+            errcov_forecast: np.ndarray,
+            errcov_obs: np.ndarray,
+            cov_forecast_and_obs: np.ndarray,
+            zero_threshold: float = cd.EFFECTIVELY_ZERO_DEFAULT,
+            ):
+        """
+        __init__ for KalmanOut class
+
+        :param forecast_vector: 1D vector of forecasts
+        :type forecast_vector: np.ndarray
+        :param obs_vector: 1D vector of (gridded) observations
+        :type obs_vector: np.ndarray
+        :param errcov_forecast: 2D matrix of errcov for forecast_vector
+        :type errcov_forecast: np.ndarray
+        :param errcov_obs: 2D matrix of errcov for obs_vector
+        :type errcov_forecast: np.ndarray
+        :param cov_forecast_and_obs: covariance between forecast & observations
+        :type cov_forecast_and_obs: np.ndarray
+        :param ez_covariances: ignore off-diagonals of errcov_forecast,
+            errcov_obs and cov_forecast_and_obs if set to True, default True
+        :type ez_covariances: bool
+        """
+        #
+        _check_2d_and_square(errcov_forecast)
+        _check_2d_and_square(errcov_obs)
+        _check_2d_and_square(cov_forecast_and_obs)
+        #
+        ans = cd.diag_and_nondiag_rows_subsampler(
+            errcov_forecast + errcov_obs,
+            zero_threshold=zero_threshold,
+            return_subsampled_arr=False,
+        )
+        self.d_off_diagonal, _, self.d_diagonal_only, _ = ans
+        #
+        forecast_vector_d = self.d_diagonal_only @ forecast_vector
+        obs_vector_d = self.d_diagonal_only @ obs_vector
+        errcov_forecast_d = self.d_diagonal_only @ errcov_forecast @ self.d_diagonal_only.T  # noqa: E501
+        errcov_obs_d = self.d_diagonal_only @ errcov_obs @ self.d_diagonal_only.T  # noqa: E501
+        cov_forecast_and_obs_d = self.d_diagonal_only @ cov_forecast_and_obs @ self.d_diagonal_only.T  # noqa: E501
+        #
+        forecast_vector_c = self.d_off_diagonal @ forecast_vector
+        obs_vector_c = self.d_off_diagonal @ obs_vector
+        errcov_forecast_c = self.d_off_diagonal @ errcov_forecast @ self.d_off_diagonal.T  # noqa: E501
+        errcov_obs_c = self.d_off_diagonal @ errcov_obs @ self.d_off_diagonal.T
+        cov_forecast_and_obs_c = self.d_off_diagonal @ cov_forecast_and_obs @ self.d_off_diagonal.T  # noqa: E501
+        #
+        self.uncorr_part = KalmanOut(
+            forecast_vector_d,
+            obs_vector_d,
+            np.diag(errcov_forecast_d),
+            np.diag(errcov_obs_d),
+            np.diag(cov_forecast_and_obs_d),
+            ez_covariances=True,
+        )
+        self.corr_part = KalmanOut(
+            forecast_vector_c,
+            obs_vector_c,
+            errcov_forecast_c,
+            errcov_obs_c,
+            cov_forecast_and_obs_c,
+            ez_covariances=False,
+        )
+
+    def solve_uncorr(self):
+        """Alias for instance_name.uncorr_part.compute_outputs()"""
+        self.uncorr_part.compute_outputs()
+
+    def solve_corr(self):
+        """Alias for instance_name.corr_part.compute_outputs()"""
+        self.corr_part.compute_outputs()
+
+    def combine_results(self):
+        """Blend the results of uncorrelated and correlated streams"""
+        if not hasattr(self.uncorr_part, 'kalman_gain_from_new_obs'):
+            err_msg = 'Output attributes missing for uncorr_part; '
+            err_msg += 'do instance_name.uncorr_part.compute_outputs() first.'
+            raise AttributeError(err_msg)
+        if not hasattr(self.corr_part, 'kalman_gain_from_new_obs'):
+            err_msg = 'Output attributes missing for corr_part; '
+            err_msg += 'do instance_name.corr_part.compute_outputs() first.'
+            raise AttributeError(err_msg)
+        self.wgt_mean = (
+            np.matrix(self.uncorr_part.wgt_mean) @ self.d_diagonal_only +
+            np.matrix(self.corr_part.wgt_mean) @ self.d_off_diagonal
+        )[0]
+        self.errcov = (
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.errcov) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_off_diagonal.T @ self.corr_part.errcov @ self.d_off_diagonal
+        )
+        self.kalman_gain_from_new_obs = (
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.kalman_gain_from_new_obs) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_off_diagonal.T @ self.corr_part.kalman_gain_from_new_obs @ self.d_off_diagonal  # noqa: E501
+        )
+        self.wgts_from_ar_forecast = (
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.wgts_from_ar_forecast) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_off_diagonal.T @ self.corr_part.wgts_from_ar_forecast @ self.d_off_diagonal  # noqa: E501
+        )
+
+
+def _check_2d_and_square(arr: np.ndarray, name: str):
+    if len(arr.shape) != 2:
+        raise ValueError(f"{name} should be 2D")
+    if arr.shape[0] != arr.shape[1]:
+        raise ValueError(f"{name} should be square")
 
 
 def main():
