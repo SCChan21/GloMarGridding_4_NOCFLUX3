@@ -128,9 +128,9 @@ def forecast_t_plus_1_old(
     forecast_t_plus_1_anomaly = ar1_matrix @ diff_with_climatology
     forecast_t_plus_1_anomaly += climatology_mean
     #
-    climvar_mult = np.eye(ar1_matrix.shape[0]) - ar1_matrix @ ar1_matrix
-    errcov_clim = climvar_mult @ climatology_variance
-    errcov_uncert_ind_var = ar1_matrix @ errcov_independent_var_t
+    climvar_mult = np.sqrt(np.eye(ar1_matrix.shape[0]) - ar1_matrix @ ar1_matrix)  # noqa: E501
+    errcov_clim = climvar_mult @ np.diag(climatology_variance) @ climvar_mult.T
+    errcov_uncert_ind_var = np.sqrt(ar1_matrix) @ errcov_independent_var_t @ np.sqrt(ar1_matrix).T  # noqa: E501
     errcov = errcov_clim + errcov_uncert_ind_var
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
@@ -177,11 +177,10 @@ def forecast_t_plus_1(
     #
     print('Computing uncertainities')
     climvar_mult = np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
-    errcov_clim = (climvar_mult * climatology_variance.T).T
+    errcov_clim = np.diag((climvar_mult * climatology_variance.T).T)
     errcov_uncert_ind_var = (np.sqrt(lag_1_autocor) * errcov_independent_var_t.T).T  # noqa: E501
     errcov_uncert_ind_var = (errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T).T
-    # errcov_uncert_ind_var = np.diag(np.sqrt(lag_1_autocor)) @ errcov_independent_var_t @ np.diag(np.sqrt(lag_1_autocor))  # noqa: E501
-    errcov = np.diag(errcov_clim) + errcov_uncert_ind_var
+    errcov = errcov_clim + errcov_uncert_ind_var
     #
     ans = [forecast_t_plus_1_anomaly, errcov]
     return ans
