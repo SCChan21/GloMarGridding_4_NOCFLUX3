@@ -498,7 +498,7 @@ class KalmanOutUncorrCorrSplit:
             err_msg = 'Output attributes missing for corr_part; '
             err_msg += 'do instance_name.corr_part.compute_outputs() first.'
             raise AttributeError(err_msg)
-        self.wgt_mean = (
+        self.wgt_mean = np.array(
             np.matrix(self.uncorr_part.wgt_mean) @ self.d_diagonal_only +
             np.matrix(self.corr_part.wgt_mean) @ self.d_off_diagonal
         )[0]
