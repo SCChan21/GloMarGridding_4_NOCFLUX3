@@ -102,6 +102,7 @@ def forecast_t_plus_1_old(
     Compute AR1 forecast and estimate uncertainities
 
     🐢-speed
+    Uses more matrix multiplication aka "@" and np.diag
 
     :param independent_var_t: 1D vector of independent variables for t
     :type independent_var_t: np.ndarray
@@ -148,6 +149,8 @@ def forecast_t_plus_1(
 
     Speed:
     https://stackoverflow.com/questions/44388358/python-numpy-matrix-multiplication-with-one-diagonal-matrix
+
+    This version uses *, less np.diag, and is usually faster?
 
     :param independent_var_t: 1D vector of independent variables for t
     :type independent_var_t: np.ndarray
