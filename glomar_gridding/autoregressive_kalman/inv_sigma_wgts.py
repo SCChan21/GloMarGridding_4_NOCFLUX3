@@ -72,7 +72,7 @@ class KalmanOut:
             obs_vector: np.ndarray,
             errcov_forecast: np.ndarray,
             errcov_obs: np.ndarray,
-            cov_forecast_and_obs: np.ndarray,
+            cov_forecast_and_obs: Union[np.ndarray, None],
             ez_covariances: bool = True,
             ):
         """
@@ -104,10 +104,13 @@ class KalmanOut:
                 self.errcov_obs = errcov_obs
             else:
                 self.errcov_obs = np.diag(errcov_obs)
-            if check_1d(cov_forecast_and_obs):
-                self.cov_forecast_and_obs = cov_forecast_and_obs
+            if cov_forecast_and_obs is not None:
+                if check_1d(cov_forecast_and_obs):
+                    self.cov_forecast_and_obs = cov_forecast_and_obs
+                else:
+                    self.cov_forecast_and_obs = np.diag(cov_forecast_and_obs)
             else:
-                self.cov_forecast_and_obs = np.diag(cov_forecast_and_obs)
+                self.cov_forecast_and_obs = None
             self.inv_operator = np.reciprocal
             self.multiply_operator = np.multiply
             self.one_maker = np.ones
@@ -396,7 +399,7 @@ class KalmanOutUncorrCorrSplit:
             obs_vector: np.ndarray,
             errcov_forecast: np.ndarray,
             errcov_obs: np.ndarray,
-            cov_forecast_and_obs: np.ndarray,
+            cov_forecast_and_obs: Union[np.ndarray, None],
             zero_threshold: float = cd.EFFECTIVELY_ZERO_DEFAULT,
             ):
         """
@@ -419,7 +422,8 @@ class KalmanOutUncorrCorrSplit:
         #
         _check_2d_and_square(errcov_forecast)
         _check_2d_and_square(errcov_obs)
-        _check_2d_and_square(cov_forecast_and_obs)
+        if cov_forecast_and_obs is not None:
+            _check_2d_and_square(cov_forecast_and_obs)
         #
         ans = cd.diag_and_nondiag_rows_subsampler(
             errcov_forecast + errcov_obs,
@@ -432,20 +436,27 @@ class KalmanOutUncorrCorrSplit:
         obs_vector_d = self.d_diagonal_only @ obs_vector
         errcov_forecast_d = self.d_diagonal_only @ errcov_forecast @ self.d_diagonal_only.T  # noqa: E501
         errcov_obs_d = self.d_diagonal_only @ errcov_obs @ self.d_diagonal_only.T  # noqa: E501
-        cov_forecast_and_obs_d = self.d_diagonal_only @ cov_forecast_and_obs @ self.d_diagonal_only.T  # noqa: E501
+        if cov_forecast_and_obs is not None:
+            cov_forecast_and_obs_d = self.d_diagonal_only @ cov_forecast_and_obs @ self.d_diagonal_only.T  # noqa: E501
+            cov_forecast_and_obs_d = np.diag(cov_forecast_and_obs_d)
+        else:
+            cov_forecast_and_obs_d = None
         #
         forecast_vector_c = self.d_off_diagonal @ forecast_vector
         obs_vector_c = self.d_off_diagonal @ obs_vector
         errcov_forecast_c = self.d_off_diagonal @ errcov_forecast @ self.d_off_diagonal.T  # noqa: E501
         errcov_obs_c = self.d_off_diagonal @ errcov_obs @ self.d_off_diagonal.T
-        cov_forecast_and_obs_c = self.d_off_diagonal @ cov_forecast_and_obs @ self.d_off_diagonal.T  # noqa: E501
+        if cov_forecast_and_obs is not None:
+            cov_forecast_and_obs_c = self.d_off_diagonal @ cov_forecast_and_obs @ self.d_off_diagonal.T  # noqa: E501
+        else:
+            cov_forecast_and_obs_c = None
         #
         self.uncorr_part = KalmanOut(
             forecast_vector_d,
             obs_vector_d,
             np.diag(errcov_forecast_d),
             np.diag(errcov_obs_d),
-            np.diag(cov_forecast_and_obs_d),
+            cov_forecast_and_obs_d,
             ez_covariances=True,
         )
         self.corr_part = KalmanOut(
