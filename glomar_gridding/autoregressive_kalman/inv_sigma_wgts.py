@@ -399,6 +399,7 @@ class KalmanOutUncorrCorrSplit:
             obs_vector: np.ndarray,
             errcov_forecast: np.ndarray,
             errcov_obs: np.ndarray,
+            arr_2_decide_if_points_are_isolated: np.ndarray,
             cov_forecast_and_obs: Union[np.ndarray, None],
             zero_threshold: float = cd.EFFECTIVELY_ZERO_DEFAULT,
             ):
@@ -413,6 +414,12 @@ class KalmanOutUncorrCorrSplit:
         :type errcov_forecast: np.ndarray
         :param errcov_obs: 2D matrix of errcov for obs_vector
         :type errcov_forecast: np.ndarray
+        :param arr_2_decide_if_points_are_isolated:
+            2D matrix that has diagonal only/and dense bit,
+            used to decide if KF should diag-only
+            or full correlated error covariance
+            this should probably the spatial (variogram-based) covariance
+        :type arr_2_decide_if_points_are_isolated: np.ndarray
         :param cov_forecast_and_obs: covariance between forecast & observations
         :type cov_forecast_and_obs: np.ndarray
         :param ez_covariances: ignore off-diagonals of errcov_forecast,
@@ -426,11 +433,16 @@ class KalmanOutUncorrCorrSplit:
             _check_2d_and_square(cov_forecast_and_obs)
         #
         ans = cd.diag_and_nondiag_rows_subsampler(
-            errcov_forecast + errcov_obs,
+            # errcov_forecast + errcov_obs,
+            arr_2_decide_if_points_are_isolated,
             zero_threshold=zero_threshold,
             return_subsampled_arr=False,
         )
         self.d_off_diagonal, _, self.d_diagonal_only, _ = ans
+        print(f"{self.d_off_diagonal = }")
+        print(f"{np.sum(self.d_off_diagonal) = }")
+        print(f"{self.d_diagonal_only = }")
+        print(f"{np.sum(self.d_diagonal_only) = }")
         #
         forecast_vector_d = self.d_diagonal_only @ forecast_vector
         obs_vector_d = self.d_diagonal_only @ obs_vector
@@ -491,24 +503,24 @@ class KalmanOutUncorrCorrSplit:
             np.matrix(self.corr_part.wgt_mean) @ self.d_off_diagonal
         )[0]
         self.errcov = (
-            self.d_diagonal_only.T @ np.diag(self.uncorr_part.errcov) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.errcov) @ self.d_diagonal_only +  # noqa: E501
             self.d_off_diagonal.T @ self.corr_part.errcov @ self.d_off_diagonal
         )
         self.kalman_gain_from_new_obs = (
-            self.d_diagonal_only.T @ np.diag(self.uncorr_part.kalman_gain_from_new_obs) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.kalman_gain_from_new_obs) @ self.d_diagonal_only +  # noqa: E501
             self.d_off_diagonal.T @ self.corr_part.kalman_gain_from_new_obs @ self.d_off_diagonal  # noqa: E501
         )
         self.wgts_from_ar_forecast = (
-            self.d_diagonal_only.T @ np.diag(self.uncorr_part.wgts_from_ar_forecast) @ self.d_diagonal_only.T +  # noqa: E501
+            self.d_diagonal_only.T @ np.diag(self.uncorr_part.wgts_from_ar_forecast) @ self.d_diagonal_only +  # noqa: E501
             self.d_off_diagonal.T @ self.corr_part.wgts_from_ar_forecast @ self.d_off_diagonal  # noqa: E501
         )
 
 
-def _check_2d_and_square(arr: np.ndarray, name: str):
+def _check_2d_and_square(arr: np.ndarray):
     if len(arr.shape) != 2:
-        raise ValueError(f"{name} should be 2D")
+        raise ValueError("arr should be 2D")
     if arr.shape[0] != arr.shape[1]:
-        raise ValueError(f"{name} should be square")
+        raise ValueError("arr should be square")
 
 
 def main():

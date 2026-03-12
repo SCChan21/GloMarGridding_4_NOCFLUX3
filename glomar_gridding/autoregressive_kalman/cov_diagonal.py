@@ -146,7 +146,6 @@ def diag_and_nondiag_rows_subsampler(
     """
     n_rows = cov.shape[0]
     print(f"{cov.shape = }")
-    print(f"{cov.device = }; {cov.device.id = }")
     n_validrows = 0
     #
     # This returns True for rows that have off diagonal elements
