@@ -13,20 +13,20 @@ import numpy as np
 import scipy as sp
 from typing import Union
 
-EFFECTIVELY_ZERO_DEFAULT = 1E-6
+EFFECTIVELY_ZERO_DEFAULT = 1e-6
 
 
 def _more_than_one_element(
-        row: np.ndarray,
-        zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT):
+    row: np.ndarray, zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT
+):
     """Check if 1D vector more than one non-zero element"""
     return np.sum(row > zero_threshold) > 1
 
 
 def remove_diag_only_rows(
-        cov: np.ndarray,
-        zero_threshold: float = 1E-6,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    cov: np.ndarray,
+    zero_threshold: float = 1e-6,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Docstring for remove_diag_only_rows
 
@@ -78,11 +78,11 @@ def remove_diag_only_rows(
 
 
 def restore_diag_only_rows(
-        trimmed_cov_arr: np.ndarray,
-        D: np.ndarray,
-        diag_fillvalue: float = 1.2,
-        atol: float = 1E-6,
-    ) -> np.ndarray:
+    trimmed_cov_arr: np.ndarray,
+    D: np.ndarray,
+    diag_fillvalue: float = 1.2,
+    atol: float = 1e-6,
+) -> np.ndarray:
     """
     Docstring for restore_diag_only_rows
 
@@ -124,13 +124,12 @@ def restore_diag_only_rows(
 
 
 def diag_and_nondiag_rows_subsampler(
-        cov: np.ndarray,
-        zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
-        return_subsampled_arr: bool = True,
-    ) -> tuple[np.ndarray,
-               Union[None, np.ndarray],
-               np.ndarray,
-               Union[None, np.ndarray]]:
+    cov: np.ndarray,
+    zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
+    return_subsampled_arr: bool = True,
+) -> tuple[
+    np.ndarray, Union[None, np.ndarray], np.ndarray, Union[None, np.ndarray]
+]:
     """
     Docstring for diag_and_nondiag_rows_subsampler
 
@@ -154,7 +153,9 @@ def diag_and_nondiag_rows_subsampler(
             row,
             zero_threshold=zero_threshold,
         ),
-        0, cov)
+        0,
+        cov,
+    )
     n_validrows = int(np.sum(ans))
     n_diag_only = cov.shape[0] - n_validrows
     print(f"{n_validrows = }")
