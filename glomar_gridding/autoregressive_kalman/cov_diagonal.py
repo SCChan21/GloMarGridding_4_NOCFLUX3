@@ -16,7 +16,7 @@ diag_and_nondiag_rows_subsampler:
 import numpy as np
 import scipy as sp
 
-EFFECTIVELY_ZERO_DEFAULT = 1e-6
+EFFECTIVELY_ZERO_DEFAULT: float = 1e-6
 
 
 def _more_than_one_element(
