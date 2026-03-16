@@ -24,16 +24,16 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     print(type(square_matrix))
     if isinstance(square_matrix, np.ndarray):
         print("square_matrix is np.ndarray")
-        ans = linalg.solve(square_matrix, the_eye)
+        the_inverse = linalg.solve(square_matrix, the_eye)
     elif isinstance(square_matrix, sp.sparse.sparray):
         print("sp.sparse.sparray detected, using toarray() method.")
-        ans = linalg.solve(square_matrix.toarray(), the_eye)
+        the_inverse = linalg.solve(square_matrix.toarray(), the_eye)
     elif isinstance(square_matrix, sp.sparse.spmatrix):
         print("sp.sparse.spmatrix detected, using toarray() method.")
-        ans = linalg.solve(square_matrix.toarray(), the_eye)
+        the_inverse = linalg.solve(square_matrix.toarray(), the_eye)
     else:
         raise ValueError(f"Unknown type {type(square_matrix)}")
-    return ans
+    return the_inverse
 
 
 def check_1d(a: np.ndarray):
@@ -161,7 +161,7 @@ class KalmanOut:
 
     def compute_outputs(self):
         """Calls compute_inv_variance_wgt_mean_kalman"""
-        ans = compute_inv_variance_wgt_mean_kalman(
+        self.wgt_mean, self.errcov, self.kalman_gain_from_new_obs, self.wgts_from_ar_forecast = compute_inv_variance_wgt_mean_kalman(  # noqa: E501
             self.forecast_vector,
             self.obs_vector,
             self.errcov_forecast,
@@ -171,10 +171,6 @@ class KalmanOut:
             multiply_operator=self.multiply_operator,
             one_maker=self.one_maker,
         )
-        self.wgt_mean = ans[0]
-        self.errcov = ans[1]
-        self.kalman_gain_from_new_obs = ans[2]
-        self.wgts_from_ar_forecast = ans[3]
 
 
 def compute_inv_variance_wgt_mean_kalman_old(
@@ -427,13 +423,12 @@ class KalmanOutUncorrCorrSplit:
         if cov_forecast_and_obs is not None:
             _check_2d_and_square(cov_forecast_and_obs)
         #
-        ans = cd.diag_and_nondiag_rows_subsampler(
+        self.d_off_diagonal, _, self.d_diagonal_only, _ = cd.diag_and_nondiag_rows_subsampler(  # noqa: E501
             # errcov_forecast + errcov_obs,
             arr_2_decide_if_points_are_isolated,
             zero_threshold=zero_threshold,
             return_subsampled_arr=False,
         )
-        self.d_off_diagonal, _, self.d_diagonal_only, _ = ans
         print(f"{self.d_off_diagonal = }")
         print(f"{np.sum(self.d_off_diagonal) = }")
         print(f"{self.d_diagonal_only = }")

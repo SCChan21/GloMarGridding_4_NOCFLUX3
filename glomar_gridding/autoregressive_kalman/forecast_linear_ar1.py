@@ -93,15 +93,13 @@ class Autoregressive1Forecast:
 
     def compute_forecast(self):
         """Calls forecast_t_plus_1"""
-        ans = forecast_t_plus_1(
+        self.forecast, self.errcov = forecast_t_plus_1(
             self.independent_var_t,
             self.errcov_independent_var_t,
             self.lag_1_autocor,
             self.climatology_mean,
             self.climatology_variance,
         )
-        self.forecast = ans[0]
-        self.errcov = ans[1]
 
 
 def forecast_t_plus_1_old(
@@ -150,9 +148,7 @@ def forecast_t_plus_1_old(
         np.sqrt(ar1_matrix) @ errcov_independent_var_t @ np.sqrt(ar1_matrix).T
     )  # noqa: E501
     errcov = errcov_clim + errcov_uncert_ind_var
-    #
-    ans = [forecast_t_plus_1_anomaly, errcov]
-    return ans
+    return forecast_t_plus_1_anomaly, errcov
 
 
 def forecast_t_plus_1(
@@ -204,6 +200,4 @@ def forecast_t_plus_1(
     ).T  # noqa: E501
     errcov_uncert_ind_var = (errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T).T
     errcov = errcov_clim + errcov_uncert_ind_var
-    #
-    ans = [forecast_t_plus_1_anomaly, errcov]
-    return ans
+    return forecast_t_plus_1_anomaly, errcov

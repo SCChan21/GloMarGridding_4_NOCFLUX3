@@ -43,7 +43,7 @@ def remove_diag_only_rows(
     n_rows = cov.shape[0]
     print(f"{cov.shape = }")
     n_validrows = 0
-    ans = np.apply_along_axis(
+    has_off_diagonal_elements = np.apply_along_axis(
         lambda row: _more_than_one_element(
             row,
             zero_threshold=zero_threshold,
@@ -51,7 +51,7 @@ def remove_diag_only_rows(
         0,
         cov,
     )
-    n_validrows = int(np.sum(ans))
+    n_validrows = int(np.sum(has_off_diagonal_elements))
     print(f"{n_validrows = }")
     if n_validrows < 1:
         raise ValueError(f"{n_validrows} must be at >= 1")
@@ -59,7 +59,7 @@ def remove_diag_only_rows(
     D = np.zeros((n_validrows, cov.shape[0]), dtype=np.uint8)
     row_count = 0
     for i in range(n_rows):
-        if ans[i] == 0:
+        if has_off_diagonal_elements[i] == 0:
             continue
         print(f"{row_count} {i}")
         D[row_count, i] = 1
@@ -145,7 +145,7 @@ def diag_and_nondiag_rows_subsampler(
     n_validrows = 0
     #
     # This returns True for rows that have off diagonal elements
-    ans = np.apply_along_axis(
+    has_off_diagonal_elements = np.apply_along_axis(
         lambda row: _more_than_one_element(
             row,
             zero_threshold=zero_threshold,
@@ -153,7 +153,7 @@ def diag_and_nondiag_rows_subsampler(
         0,
         cov,
     )
-    n_validrows = int(np.sum(ans))
+    n_validrows = int(np.sum(has_off_diagonal_elements))
     n_diag_only = cov.shape[0] - n_validrows
     print(f"{n_validrows = }")
     print(f"{n_diag_only = }")
@@ -165,7 +165,7 @@ def diag_and_nondiag_rows_subsampler(
     row_count_off_diagonal = 0
     row_count_diagonal_only = 0
     for i in range(n_rows):
-        if ans[i] == 0:
+        if has_off_diagonal_elements[i] == 0:
             d_diagonal_only[row_count_diagonal_only, i] = True
             row_count_diagonal_only += 1
         else:
