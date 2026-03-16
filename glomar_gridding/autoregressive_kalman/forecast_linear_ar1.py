@@ -91,23 +91,6 @@ class Autoregressive1Forecast:
             )  # noqa: E501
 
     def compute_forecast(self):
-        """Calls forecast_t_plus_1"""
-        self.forecast, self.errcov = self.forecast_t_plus_1(
-            self.independent_var_t,
-            self.errcov_independent_var_t,
-            self.lag_1_autocor,
-            self.climatology_mean,
-            self.climatology_variance,
-        )
-
-    def forecast_t_plus_1(
-        self,
-        independent_var_t: np.ndarray,
-        errcov_independent_var_t: np.ndarray,
-        lag_1_autocor: np.ndarray,
-        climatology_mean: np.ndarray,
-        climatology_variance: np.ndarray,
-    ):
         """
         Compute AR1 forecast and estimate uncertainities
 
@@ -137,23 +120,24 @@ class Autoregressive1Forecast:
             The error covariance for the forecast
         """
         #
-        lag_1_autocor_squared = lag_1_autocor * lag_1_autocor
+        lag_1_autocor_squared = self.lag_1_autocor * self.lag_1_autocor
         #
         print("Computing forecast")
-        diff_with_climatology = independent_var_t - climatology_mean
-        forecast_t_plus_1_anomaly = (lag_1_autocor * diff_with_climatology.T).T
-        forecast_t_plus_1_anomaly += climatology_mean
+        diff_with_climatology = self.independent_var_t - self.climatology_mean
+        self.forecast_t_plus_1_anomaly = (
+            self.lag_1_autocor * diff_with_climatology.T
+        ).T
+        self.forecast_t_plus_1_anomaly += self.climatology_mean
         #
         print("Computing uncertainities")
         climvar_mult = (
             np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
         )
-        errcov_clim = np.diag((climvar_mult * climatology_variance.T).T)
+        errcov_clim = np.diag((climvar_mult * self.climatology_variance.T).T)
         errcov_uncert_ind_var = (
-            np.sqrt(lag_1_autocor) * errcov_independent_var_t.T
+            np.sqrt(self.lag_1_autocor) * self.errcov_independent_var_t.T
         ).T
         errcov_uncert_ind_var = (
-            errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T
+            errcov_uncert_ind_var * np.sqrt(self.lag_1_autocor).T
         ).T
-        errcov = errcov_clim + errcov_uncert_ind_var
-        return forecast_t_plus_1_anomaly, errcov
+        self.errcov = errcov_clim + errcov_uncert_ind_var
