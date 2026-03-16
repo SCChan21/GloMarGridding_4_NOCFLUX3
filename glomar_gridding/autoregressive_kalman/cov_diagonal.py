@@ -113,7 +113,6 @@ def restore_diag_only_rows(
     ans: numpy.ndarray
         A larger (restored) covariance array
     """
-    #
     print(f"{trimmed_cov_arr.shape = }")
     print(f"{D.shape = }")
     #
