@@ -278,8 +278,7 @@ class KalmanOut:
         # Output weighted mean
         print("Computing weighted mean")
         wgt_mean = multiply_operator(
-            kalman_gain,
-            (obs_vector - forecast_vector)
+            kalman_gain, (obs_vector - forecast_vector)
         )
         wgt_mean += forecast_vector
         #
@@ -287,7 +286,7 @@ class KalmanOut:
         print("Computing updating uncertainities")
         errcov = multiply_operator(
             one_maker(inv_sum_of_errcovs.shape[0]) - kalman_gain,
-            errcov_forecast
+            errcov_forecast,
         )
         if cov_forecast_and_obs is not None:
             w1w2cov = multiply_operator(
