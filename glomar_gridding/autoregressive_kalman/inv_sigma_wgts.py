@@ -62,8 +62,8 @@ def matmul(
 ):
     """
     Matrix multiplication
-    - np.matmul does not work with sp.sparse.sparray
-    - Can't use @ when it needs to mix with np.multiply
+    - np.matmul does not work with sp.sparse.sparray; it will throw an exception
+    - "@" always work, but "@" cannot be passed as a function like np.multiply.
     """
     return a @ b
 
