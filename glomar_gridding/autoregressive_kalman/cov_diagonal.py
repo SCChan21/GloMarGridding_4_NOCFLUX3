@@ -201,12 +201,3 @@ def diag_and_nondiag_rows_subsampler(
         d_diagonal_only,
         isolated_diag_vals,
     )
-
-
-def main():
-    """MAIN"""
-    print("===MAIN===")
-
-
-if __name__ == "__main__":
-    main()

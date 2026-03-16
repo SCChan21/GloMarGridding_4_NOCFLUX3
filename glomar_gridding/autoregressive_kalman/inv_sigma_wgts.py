@@ -542,12 +542,3 @@ def _check_2d_and_square(arr: np.ndarray):
         raise ValueError("arr should be 2D")
     if arr.shape[0] != arr.shape[1]:
         raise ValueError("arr should be square")
-
-
-def main():
-    """MAIN"""
-    print("===MAIN===")
-
-
-if __name__ == "__main__":
-    main()
