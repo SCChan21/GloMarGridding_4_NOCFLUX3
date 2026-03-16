@@ -92,7 +92,7 @@ class Autoregressive1Forecast:
 
     def compute_forecast(self):
         """Calls forecast_t_plus_1"""
-        self.forecast, self.errcov = forecast_t_plus_1(
+        self.forecast, self.errcov = self.forecast_t_plus_1(
             self.independent_var_t,
             self.errcov_independent_var_t,
             self.lag_1_autocor,
@@ -100,56 +100,60 @@ class Autoregressive1Forecast:
             self.climatology_variance,
         )
 
+    def forecast_t_plus_1(
+        self,
+        independent_var_t: np.ndarray,
+        errcov_independent_var_t: np.ndarray,
+        lag_1_autocor: np.ndarray,
+        climatology_mean: np.ndarray,
+        climatology_variance: np.ndarray,
+    ):
+        """
+        Compute AR1 forecast and estimate uncertainities
 
-def forecast_t_plus_1(
-    independent_var_t: np.ndarray,
-    errcov_independent_var_t: np.ndarray,
-    lag_1_autocor: np.ndarray,
-    climatology_mean: np.ndarray,
-    climatology_variance: np.ndarray,
-):
-    """
-    Compute AR1 forecast and estimate uncertainities
+        Speed:
+        https://stackoverflow.com/questions/44388358/python-numpy-matrix-multiplication-with-one-diagonal-matrix
 
-    Speed:
-    https://stackoverflow.com/questions/44388358/python-numpy-matrix-multiplication-with-one-diagonal-matrix
+        This version uses *, less np.diag, and should be faster.
 
-    This version uses *, less np.diag, and should be faster.
+        Parameters
+        ----------
+        independent_var_t: numpy.ndarray
+            1D vector of independent variables for t
+        errcov_independent_var_t: numpy.ndarray
+            2D errcov for independent_var_t
+        lag_1_autocor: numpy.ndarray
+            1D vector of lag correlation
+        climatology_mean: numpy.ndarray
+            1D climatological mean for independent_var
+        climatology_variance: numpy.ndarray
+            climatology_variance: 1D climatological variance for independent_var
 
-    Parameters
-    ----------
-    independent_var_t: numpy.ndarray
-        1D vector of independent variables for t
-    errcov_independent_var_t: numpy.ndarray
-        2D errcov for independent_var_t
-    lag_1_autocor: numpy.ndarray
-        1D vector of lag correlation
-    climatology_mean: numpy.ndarray
-        1D climatological mean for independent_var
-    climatology_variance: numpy.ndarray
-        climatology_variance: 1D climatological variance for independent_var
-
-    Returns
-    -------
-    forecast_t_plus_1_anomaly: numpy.ndarray
-        AR1 forecast
-    errcov: numpy.ndarray
-        The error covariance for the forecast
-    """
-    #
-    lag_1_autocor_squared = lag_1_autocor * lag_1_autocor
-    #
-    print("Computing forecast")
-    diff_with_climatology = independent_var_t - climatology_mean
-    forecast_t_plus_1_anomaly = (lag_1_autocor * diff_with_climatology.T).T
-    forecast_t_plus_1_anomaly += climatology_mean
-    #
-    print("Computing uncertainities")
-    climvar_mult = np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
-    errcov_clim = np.diag((climvar_mult * climatology_variance.T).T)
-    errcov_uncert_ind_var = (
-        np.sqrt(lag_1_autocor) * errcov_independent_var_t.T
-    ).T  # noqa: E501
-    errcov_uncert_ind_var = (errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T).T
-    errcov = errcov_clim + errcov_uncert_ind_var
-    return forecast_t_plus_1_anomaly, errcov
+        Returns
+        -------
+        forecast_t_plus_1_anomaly: numpy.ndarray
+            AR1 forecast
+        errcov: numpy.ndarray
+            The error covariance for the forecast
+        """
+        #
+        lag_1_autocor_squared = lag_1_autocor * lag_1_autocor
+        #
+        print("Computing forecast")
+        diff_with_climatology = independent_var_t - climatology_mean
+        forecast_t_plus_1_anomaly = (lag_1_autocor * diff_with_climatology.T).T
+        forecast_t_plus_1_anomaly += climatology_mean
+        #
+        print("Computing uncertainities")
+        climvar_mult = (
+            np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
+        )
+        errcov_clim = np.diag((climvar_mult * climatology_variance.T).T)
+        errcov_uncert_ind_var = (
+            np.sqrt(lag_1_autocor) * errcov_independent_var_t.T
+        ).T
+        errcov_uncert_ind_var = (
+            errcov_uncert_ind_var * np.sqrt(lag_1_autocor).T
+        ).T
+        errcov = errcov_clim + errcov_uncert_ind_var
+        return forecast_t_plus_1_anomaly, errcov
