@@ -28,7 +28,7 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     arr_shape = square_matrix.shape
     if len(arr_shape) != 2:
         raise ValueError("square_matrix is not a 2D matrix.")
-    if arr_shape[0] != arr_shape[1]:
+    if _check_2d_and_square(arr_shape):
         raise ValueError("square_matrix is not square matrix")
     the_eye = np.eye(arr_shape[0])
     print(type(square_matrix))
