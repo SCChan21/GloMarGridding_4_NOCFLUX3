@@ -124,9 +124,7 @@ class Autoregressive1Forecast:
         #
         print("Computing forecast")
         diff_with_climatology = self.independent_var_t - self.climatology_mean
-        self.forecast = (
-            self.lag_1_autocor * diff_with_climatology.T
-        ).T
+        self.forecast = (self.lag_1_autocor * diff_with_climatology.T).T
         self.forecast += self.climatology_mean
         #
         print("Computing uncertainities")
