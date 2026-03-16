@@ -34,16 +34,15 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     print(type(square_matrix))
     if isinstance(square_matrix, np.ndarray):
         print("square_matrix is numpy.ndarray")
-        the_inverse = linalg.solve(square_matrix, the_eye)
+        return linalg.solve(square_matrix, the_eye)
     elif isinstance(square_matrix, sp.sparse.sparray):
         print("sp.sparse.sparray detected, using toarray() method.")
-        the_inverse = linalg.solve(square_matrix.toarray(), the_eye)
+        return linalg.solve(square_matrix.toarray(), the_eye)
     elif isinstance(square_matrix, sp.sparse.spmatrix):
         print("sp.sparse.spmatrix detected, using toarray() method.")
-        the_inverse = linalg.solve(square_matrix.toarray(), the_eye)
+        return linalg.solve(square_matrix.toarray(), the_eye)
     else:
         raise ValueError(f"Unknown type {type(square_matrix)}")
-    return the_inverse
 
 
 def check_1d(a: np.ndarray):
