@@ -161,7 +161,12 @@ class KalmanOut:
 
     def compute_outputs(self):
         """Calls compute_inv_variance_wgt_mean_kalman"""
-        self.wgt_mean, self.errcov, self.kalman_gain_from_new_obs, self.wgts_from_ar_forecast = compute_inv_variance_wgt_mean_kalman(  # noqa: E501
+        (
+            self.wgt_mean,
+            self.errcov,
+            self.kalman_gain_from_new_obs,
+            self.wgts_from_ar_forecast,
+        ) = compute_inv_variance_wgt_mean_kalman(  # noqa: E501
             self.forecast_vector,
             self.obs_vector,
             self.errcov_forecast,
@@ -423,11 +428,13 @@ class KalmanOutUncorrCorrSplit:
         if cov_forecast_and_obs is not None:
             _check_2d_and_square(cov_forecast_and_obs)
         #
-        self.d_off_diagonal, _, self.d_diagonal_only, _ = cd.diag_and_nondiag_rows_subsampler(  # noqa: E501
-            # errcov_forecast + errcov_obs,
-            arr_2_decide_if_points_are_isolated,
-            zero_threshold=zero_threshold,
-            return_subsampled_arr=False,
+        self.d_off_diagonal, _, self.d_diagonal_only, _ = (
+            cd.diag_and_nondiag_rows_subsampler(  # noqa: E501
+                # errcov_forecast + errcov_obs,
+                arr_2_decide_if_points_are_isolated,
+                zero_threshold=zero_threshold,
+                return_subsampled_arr=False,
+            )
         )
         print(f"{self.d_off_diagonal = }")
         print(f"{np.sum(self.d_off_diagonal) = }")
