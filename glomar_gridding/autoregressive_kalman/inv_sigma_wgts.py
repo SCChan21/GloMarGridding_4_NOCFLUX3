@@ -11,41 +11,6 @@ from glomar_gridding.autoregressive_kalman import cov_diagonal as cd
 EFFECTIVELY_ZERO_VAR_DEFAULT = 1e-6
 
 
-def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
-    """
-    Solves the linear system for cov_inv
-    cov @ cov_inv = np.eye
-
-    Parameters
-    ----------
-    square_matrix: numpy.ndarray
-        The matrix that needs an inverse
-
-    Returns
-    -------
-    the_inverse: numpy.ndarray
-        The inverse
-    """
-    arr_shape = square_matrix.shape
-    if len(arr_shape) != 2:
-        raise ValueError("square_matrix is not a 2D matrix.")
-    if _check_2d_and_square(square_matrix):
-        raise ValueError("square_matrix is not square matrix")
-    the_eye = np.eye(arr_shape[0])
-    print(type(square_matrix))
-    if isinstance(square_matrix, np.ndarray):
-        print("square_matrix is numpy.ndarray")
-        return linalg.solve(square_matrix, the_eye)
-    elif isinstance(square_matrix, sp.sparse.sparray):
-        print("sp.sparse.sparray detected, using toarray() method.")
-        return linalg.solve(square_matrix.toarray(), the_eye)
-    elif isinstance(square_matrix, sp.sparse.spmatrix):
-        print("sp.sparse.spmatrix detected, using toarray() method.")
-        return linalg.solve(square_matrix.toarray(), the_eye)
-    else:
-        raise ValueError(f"Unknown type {type(square_matrix)}")
-
-
 def check_1d(a: np.ndarray):
     """Check if array a is 1D, 2D or something invalid"""
     if len(a.shape) == 1:
@@ -122,7 +87,6 @@ class KalmanOut:
                     self.cov_forecast_and_obs = np.diag(cov_forecast_and_obs)
             else:
                 self.cov_forecast_and_obs = None
-            self.inv_operator = np.reciprocal
             self.multiply_operator = np.multiply
             self.one_maker = np.ones
         else:
@@ -130,7 +94,6 @@ class KalmanOut:
             self.errcov_forecast = errcov_forecast
             self.errcov_obs = errcov_obs
             self.cov_forecast_and_obs = cov_forecast_and_obs
-            self.inv_operator = compute_inverse_via_solve
             self.multiply_operator = matmul
             self.one_maker = np.eye
 
@@ -214,42 +177,7 @@ class KalmanOut:
             arr = sp.sparse.csc_array(arr)
         return arr
 
-    # def compute_outputs(self):
-    #     """
-    #     Calls compute_inv_variance_wgt_mean_kalman.
-    #     Computes
-    #     - the posterior analysis: self.wgt_mean
-    #     - the posterior analysis error covariance: self.errcov
-    #     - Kalman gain: self.kalman_gain_from_new_obs
-    #     - weights assigned to prior: self.wgts_from_ar_forecast
-    #     """
-    #     (
-    #         self.wgt_mean,
-    #         self.errcov,
-    #         self.kalman_gain_from_new_obs,
-    #         self.wgts_from_ar_forecast,
-    #     ) = self.compute_inv_variance_wgt_mean_kalman(
-    #         self.forecast_vector,
-    #         self.obs_vector,
-    #         self.errcov_forecast,
-    #         self.errcov_obs,
-    #         self.cov_forecast_and_obs,
-    #         inv_operator=self.inv_operator,
-    #         multiply_operator=self.multiply_operator,
-    #         one_maker=self.one_maker,
-    #     )
-
-    def compute_outputs(
-        self,
-        # forecast_vector: np.ndarray,
-        # obs_vector: np.ndarray,
-        # errcov_forecast: np.ndarray,
-        # errcov_obs: np.ndarray,
-        # cov_forecast_and_obs: np.ndarray | None = None,
-        # inv_operator: callable = compute_inverse_via_solve,
-        # multiply_operator: callable = matmul,
-        # one_maker: callable = np.eye,
-    ):
+    def compute_outputs(self):
         """
         Compute the inverse variance weighted average of
         forecast_vector & obs_vector using provided error covariances
@@ -274,6 +202,10 @@ class KalmanOut:
         cov_forecast_and_obs: numpy.ndarray | None
             2D covariance between forecast & observations
             Set to None if zero
+        multiply_operator: callable
+            Operator to multiply variables - matrix or algebra multiplication
+        one_maker: callable
+            Function to create 1s - identity matrix or vector of 1
 
         Returns
         -------
@@ -305,18 +237,29 @@ class KalmanOut:
                 "obs_vector shape inconsistent with forecast_vector"
             )
         #
-        # The one and only one inverse required! Wahoo!
-        print("Computing inverse of sum of error covariances")
-        inv_sum_of_errcovs = self.inv_operator(
-            self.errcov_forecast + self.errcov_obs
-        )
-        #
         # Weights and error covariance if obs and forecast are uncorrelated
         print("Computing kalman_gain")
-        self.kalman_gain_from_new_obs = self.multiply_operator(
-            self.errcov_forecast,
-            inv_sum_of_errcovs,
-        )
+        if self.ez_covariances:
+            # Working with 1D vectors
+            # gain = forecast_err / (forecast_err + obs_err)
+            self.kalman_gain_from_new_obs = self.multiply_operator(
+                self.errcov_forecast,
+                np.reciprocal(self.errcov_forecast + self.errcov_obs),
+            )
+        else:
+            # Matrix form
+            # gain = forecast_err @ inv(forecast_err + obs_err)
+            # gain @ (forecast_err + obs_err) = forecast_err
+            # (gain @ (forecast_err + obs_err)).T = forecast_err.T
+            # (forecast_err + obs_err)).T @ gain.T = forecast_err.T
+            # but forecast_err and obs_err are symmetric
+            # Hence solve set of linear equations that:
+            # (forecast_err + obs_err) @ gain.T = forecast_err
+            self.kalman_gain_from_new_obs = linalg.solve(
+                self.errcov_forecast + self.errcov_obs,
+                self.errcov_forecast,
+            ).T
+        #
         print("Computing forecast_wgt")
         self.wgts_from_ar_forecast = (
             self.one_maker(self.kalman_gain_from_new_obs.shape[0])
@@ -335,7 +278,7 @@ class KalmanOut:
         print("Computing updating uncertainities")
         self.errcov = self.multiply_operator(
             (
-                self.one_maker(inv_sum_of_errcovs.shape[0])
+                self.one_maker(self.errcov_obs.shape[0])
                 - self.kalman_gain_from_new_obs
             ),
             self.errcov_forecast,
