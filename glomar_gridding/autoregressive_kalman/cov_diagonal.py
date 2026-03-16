@@ -11,7 +11,6 @@ restore_diag_only_rows:
 
 import numpy as np
 import scipy as sp
-from typing import Union
 
 EFFECTIVELY_ZERO_DEFAULT = 1e-6
 
@@ -128,7 +127,7 @@ def diag_and_nondiag_rows_subsampler(
     zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
     return_subsampled_arr: bool = True,
 ) -> tuple[
-    np.ndarray, Union[None, np.ndarray], np.ndarray, Union[None, np.ndarray]
+    np.ndarray, None | np.ndarray, np.ndarray, None | np.ndarray
 ]:
     """
     Docstring for diag_and_nondiag_rows_subsampler

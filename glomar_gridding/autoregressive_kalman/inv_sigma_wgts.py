@@ -4,8 +4,6 @@ import numpy as np
 from numpy import linalg
 import scipy as sp
 
-from typing import Union
-
 from . import cov_diagonal as cd
 
 # EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
@@ -49,8 +47,8 @@ def check_1d(a: np.ndarray):
 
 
 def matmul(
-    a: Union[np.ndarray, sp.sparse.sparray],
-    b: Union[np.ndarray, sp.sparse.sparray],
+    a: np.ndarray | sp.sparse.sparray,
+    b: np.ndarray | sp.sparse.sparray,
 ):
     """
     Matrix multiplication
@@ -72,7 +70,7 @@ class KalmanOut:
         obs_vector: np.ndarray,
         errcov_forecast: np.ndarray,
         errcov_obs: np.ndarray,
-        cov_forecast_and_obs: Union[np.ndarray, None],
+        cov_forecast_and_obs: np.ndarray | None,
         ez_covariances: bool = True,
     ):
         """
@@ -184,7 +182,7 @@ def compute_inv_variance_wgt_mean_kalman_old(
     obs_vector: np.ndarray,
     errcov_forecast: np.ndarray,
     errcov_obs: np.ndarray,
-    cov_forecast_and_obs: Union[np.ndarray, None] = None,
+    cov_forecast_and_obs: np.ndarray | None = None,
     inv_operator: callable = compute_inverse_via_solve,
     multiply_operator: callable = matmul,
     one_maker: callable = np.eye,
@@ -271,7 +269,7 @@ def compute_inv_variance_wgt_mean_kalman(
     obs_vector: np.ndarray,
     errcov_forecast: np.ndarray,
     errcov_obs: np.ndarray,
-    cov_forecast_and_obs: Union[np.ndarray, None] = None,
+    cov_forecast_and_obs: np.ndarray | None = None,
     inv_operator: callable = compute_inverse_via_solve,
     multiply_operator: callable = matmul,
     one_maker: callable = np.eye,
@@ -358,7 +356,7 @@ def small_elements_2_zero_and_sparse(
     sparse_threshold: float = EFFECTIVELY_ZERO_VAR_DEFAULT,
     leave_diagonal_alone: bool = True,
     convert2sparse: bool = True,
-) -> Union[np.ndarray, sp.sparse.sparray]:
+) -> np.ndarray | sp.sparse.sparray:
     """
     :param arr: array to be manipulated
     :type arr: np.ndarray
@@ -370,7 +368,7 @@ def small_elements_2_zero_and_sparse(
     :type convert2sparse: bool
 
     :returns: sparse array
-    :rtype: Union[np.ndarray, sp.sparse.sparray]
+    :rtype: np.ndarray | sp.sparse.sparray
     """
     if len(arr.shape) != 2:
         raise ValueError("This function accepts 2D arrays only.")
@@ -397,7 +395,7 @@ class KalmanOutUncorrCorrSplit:
         errcov_forecast: np.ndarray,
         errcov_obs: np.ndarray,
         arr_2_decide_if_points_are_isolated: np.ndarray,
-        cov_forecast_and_obs: Union[np.ndarray, None],
+        cov_forecast_and_obs: np.ndarray | None,
         zero_threshold: float = cd.EFFECTIVELY_ZERO_DEFAULT,
     ):
         """
