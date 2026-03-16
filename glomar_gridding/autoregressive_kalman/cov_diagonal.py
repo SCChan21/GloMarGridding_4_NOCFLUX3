@@ -53,7 +53,7 @@ def remove_diag_only_rows(
     )
     n_validrows = int(np.sum(ans))
     print(f"{n_validrows = }")
-    if not n_validrows >= 1:
+    if n_validrows < 1:
         raise ValueError(f"{n_validrows} must be at >= 1")
     #
     D = np.zeros((n_validrows, cov.shape[0]), dtype=np.uint8)
