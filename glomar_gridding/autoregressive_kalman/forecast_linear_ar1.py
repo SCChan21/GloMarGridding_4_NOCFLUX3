@@ -6,10 +6,6 @@ output new uncertainities
 import numpy as np
 
 
-# items to add:
-# - forecast_t_plus_1_old is obsolete
-
-
 class Autoregressive1Forecast:
     """
     Class to compute AR1 forecast
@@ -103,56 +99,6 @@ class Autoregressive1Forecast:
             self.climatology_mean,
             self.climatology_variance,
         )
-
-
-def forecast_t_plus_1_old(
-    independent_var_t: np.ndarray,
-    errcov_independent_var_t: np.ndarray,
-    lag_1_autocor: np.ndarray,
-    climatology_mean: np.ndarray,
-    climatology_variance: np.ndarray,
-):
-    """
-    Compute AR1 forecast and estimate uncertainities
-
-    🐢-speed; uses more matrix multiplication aka "@" and np.diag
-
-    Parameters
-    ----------
-    independent_var_t: numpy.ndarray
-        1D vector of independent variables for t
-    errcov_independent_var_t: numpy.ndarray
-        2D errcov for independent_var_t
-    lag_1_autocor: numpy.ndarray
-        1D vector of lag correlation
-    climatology_mean: numpy.ndarray
-        1D climatological mean for independent_var
-    climatology_variance: numpy.ndarray
-        climatology_variance: 1D climatological variance for independent_var
-
-    Returns
-    -------
-    forecast_t_plus_1_anomaly: numpy.ndarray
-        AR1 forecast
-    errcov: numpy.ndarray
-        The error covariance for the forecast
-    """
-    #
-    ar1_matrix = np.diag(lag_1_autocor)
-    #
-    diff_with_climatology = independent_var_t - climatology_mean
-    forecast_t_plus_1_anomaly = ar1_matrix @ diff_with_climatology
-    forecast_t_plus_1_anomaly += climatology_mean
-    #
-    climvar_mult = np.sqrt(
-        np.eye(ar1_matrix.shape[0]) - ar1_matrix @ ar1_matrix
-    )  # noqa: E501
-    errcov_clim = climvar_mult @ np.diag(climatology_variance) @ climvar_mult.T
-    errcov_uncert_ind_var = (
-        np.sqrt(ar1_matrix) @ errcov_independent_var_t @ np.sqrt(ar1_matrix).T
-    )  # noqa: E501
-    errcov = errcov_clim + errcov_uncert_ind_var
-    return forecast_t_plus_1_anomaly, errcov
 
 
 def forecast_t_plus_1(
