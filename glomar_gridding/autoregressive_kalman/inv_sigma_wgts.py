@@ -162,144 +162,18 @@ class KalmanOut:
             err_msg = "This method is not intended to be use with "
             err_msg += "non-2D error covariances/ez_covariances."
             raise ValueError(err_msg)
-        self.errcov_forecast = self.small_elements_2_zero_and_sparse(
+        self.errcov_forecast = self._small_elements_2_zero_and_sparse(
             self.errcov_forecast,
             sparse_threshold=sparse_threshold,
             convert2sparse=convert2sparse,
         )
-        self.errcov_obs = self.small_elements_2_zero_and_sparse(
+        self.errcov_obs = self._small_elements_2_zero_and_sparse(
             self.errcov_obs,
             sparse_threshold=sparse_threshold,
             convert2sparse=convert2sparse,
         )
 
-    def compute_outputs(self):
-        """
-        Calls compute_inv_variance_wgt_mean_kalman.
-        Computes
-        - the posterior analysis: self.wgt_mean
-        - the posterior analysis error covariance: self.errcov
-        - Kalman gain: self.kalman_gain_from_new_obs
-        - weights assigned to prior: self.wgts_from_ar_forecast
-        """
-        (
-            self.wgt_mean,
-            self.errcov,
-            self.kalman_gain_from_new_obs,
-            self.wgts_from_ar_forecast,
-        ) = self.compute_inv_variance_wgt_mean_kalman(
-            self.forecast_vector,
-            self.obs_vector,
-            self.errcov_forecast,
-            self.errcov_obs,
-            self.cov_forecast_and_obs,
-            inv_operator=self.inv_operator,
-            multiply_operator=self.multiply_operator,
-            one_maker=self.one_maker,
-        )
-
-    def compute_inv_variance_wgt_mean_kalman(
-        self,
-        forecast_vector: np.ndarray,
-        obs_vector: np.ndarray,
-        errcov_forecast: np.ndarray,
-        errcov_obs: np.ndarray,
-        cov_forecast_and_obs: np.ndarray | None = None,
-        inv_operator: callable = compute_inverse_via_solve,
-        multiply_operator: callable = matmul,
-        one_maker: callable = np.eye,
-    ):
-        """
-        Compute the inverse variance weighted average of
-        forecast_vector & obs_vector using provided error covariances
-        errcov_forecast & errcov_obs
-
-        This uses a form that requires only ONE matrix inverses
-        and reciporcals (good!) and is more commonly seen in
-        Kalman Fiter guides (including the form uses in Wikipedia)
-        https://en.wikipedia.org/wiki/Kalman_filter
-        Probably everyone hate matrix inverses... (for good reason)
-
-        Parameters
-        ----------
-        forecast_vector: numpy.ndarray
-            1D vector of forecasts
-        obs_vector: numpy.ndarray
-            1D vector of (gridded) observations
-        errcov_forecast: numpy.ndarray
-            2D matrix of error covariance for forecast_vector
-        errcov_forecast: numpy.ndarray
-            2D matrix of error covariance for obs_vector
-        cov_forecast_and_obs: numpy.ndarray | None
-            2D covariance between forecast & observations
-            Set to None if zero
-
-        Returns
-        -------
-        wgt_mean: numpy.ndarray
-            Posterior analysis
-        errcov: numpy.ndarray
-            Posterior error covariance
-        kalman_gain: numpy.ndarray
-            Kalman gain (either a 2D matrix or 1D vector)
-        forecast_wgt: numpy.ndarray
-            Identity matrix or one vector minus Kalman gain
-        """
-        #
-        # The one and only one inverse required! Wahoo!
-        print("Computing inverse of sum of error covariances")
-        inv_sum_of_errcovs = inv_operator(errcov_forecast + errcov_obs)
-        #
-        forecast_vector_shape = forecast_vector.shape
-        if len(forecast_vector_shape) != 1:
-            raise ValueError("forecast_vector is not 1D vector")
-        if errcov_forecast.shape[0] != forecast_vector_shape[0]:
-            raise ValueError(
-                "forecast_vector shape inconsistent with errcov_forecast"
-            )
-        #
-        obs_vector_shape = obs_vector.shape
-        if len(obs_vector_shape) != 1:
-            raise ValueError("obs_vector is not 1D vector")
-        if errcov_obs.shape[0] != obs_vector_shape[0]:
-            raise ValueError("obs_vector shape inconsistent with errcov_obs")
-        #
-        if forecast_vector_shape[0] != obs_vector_shape[0]:
-            raise ValueError(
-                "obs_vector shape inconsistent with forecast_vector"
-            )
-        #
-        # Weights and error covariance if obs and forecast are uncorrelated
-        print("Computing kalman_gain")
-        kalman_gain = multiply_operator(errcov_forecast, inv_sum_of_errcovs)
-        print("Computing forecast_wgt")
-        forecast_wgt = one_maker(kalman_gain.shape[0]) - kalman_gain
-        #
-        # Output weighted mean
-        print("Computing weighted mean")
-        wgt_mean = multiply_operator(
-            kalman_gain, (obs_vector - forecast_vector)
-        )
-        wgt_mean += forecast_vector
-        #
-        # Output error covariance
-        print("Computing updating uncertainities")
-        errcov = multiply_operator(
-            one_maker(inv_sum_of_errcovs.shape[0]) - kalman_gain,
-            errcov_forecast,
-        )
-        if cov_forecast_and_obs is not None:
-            w1w2cov = multiply_operator(
-                multiply_operator(kalman_gain, forecast_wgt),
-                cov_forecast_and_obs,
-            )
-            errcov += multiply_operator(
-                2.0 * one_maker(obs_vector_shape[0]), w1w2cov
-            )
-        #
-        return wgt_mean, errcov, kalman_gain, forecast_wgt
-
-    def small_elements_2_zero_and_sparse(
+    def _small_elements_2_zero_and_sparse(
         self,
         arr: np.ndarray,
         sparse_threshold: float = EFFECTIVELY_ZERO_VAR_DEFAULT,
@@ -338,6 +212,144 @@ class KalmanOut:
         if convert2sparse:
             arr = sp.sparse.csc_array(arr)
         return arr
+
+    # def compute_outputs(self):
+    #     """
+    #     Calls compute_inv_variance_wgt_mean_kalman.
+    #     Computes
+    #     - the posterior analysis: self.wgt_mean
+    #     - the posterior analysis error covariance: self.errcov
+    #     - Kalman gain: self.kalman_gain_from_new_obs
+    #     - weights assigned to prior: self.wgts_from_ar_forecast
+    #     """
+    #     (
+    #         self.wgt_mean,
+    #         self.errcov,
+    #         self.kalman_gain_from_new_obs,
+    #         self.wgts_from_ar_forecast,
+    #     ) = self.compute_inv_variance_wgt_mean_kalman(
+    #         self.forecast_vector,
+    #         self.obs_vector,
+    #         self.errcov_forecast,
+    #         self.errcov_obs,
+    #         self.cov_forecast_and_obs,
+    #         inv_operator=self.inv_operator,
+    #         multiply_operator=self.multiply_operator,
+    #         one_maker=self.one_maker,
+    #     )
+
+    def compute_outputs(
+        self,
+        # forecast_vector: np.ndarray,
+        # obs_vector: np.ndarray,
+        # errcov_forecast: np.ndarray,
+        # errcov_obs: np.ndarray,
+        # cov_forecast_and_obs: np.ndarray | None = None,
+        # inv_operator: callable = compute_inverse_via_solve,
+        # multiply_operator: callable = matmul,
+        # one_maker: callable = np.eye,
+    ):
+        """
+        Compute the inverse variance weighted average of
+        forecast_vector & obs_vector using provided error covariances
+        errcov_forecast & errcov_obs
+
+        This uses a form that requires only ONE matrix inverses
+        and reciporcals (good!) and is more commonly seen in
+        Kalman Fiter guides (including the form uses in Wikipedia)
+        https://en.wikipedia.org/wiki/Kalman_filter
+        Probably everyone hate matrix inverses... (for good reason)
+
+        Parameters
+        ----------
+        forecast_vector: numpy.ndarray
+            1D vector of forecasts
+        obs_vector: numpy.ndarray
+            1D vector of (gridded) observations
+        errcov_forecast: numpy.ndarray
+            2D matrix of error covariance for forecast_vector
+        errcov_forecast: numpy.ndarray
+            2D matrix of error covariance for obs_vector
+        cov_forecast_and_obs: numpy.ndarray | None
+            2D covariance between forecast & observations
+            Set to None if zero
+
+        Returns
+        -------
+        wgt_mean: numpy.ndarray
+            Posterior analysis
+        errcov: numpy.ndarray
+            Posterior error covariance
+        kalman_gain: numpy.ndarray
+            Kalman gain (either a 2D matrix or 1D vector)
+        forecast_wgt: numpy.ndarray
+            Identity matrix or one vector minus Kalman gain
+        """
+        forecast_vector_shape = self.forecast_vector.shape
+        if len(forecast_vector_shape) != 1:
+            raise ValueError("forecast_vector is not 1D vector")
+        if self.errcov_forecast.shape[0] != forecast_vector_shape[0]:
+            raise ValueError(
+                "forecast_vector shape inconsistent with errcov_forecast"
+            )
+        #
+        obs_vector_shape = self.obs_vector.shape
+        if len(obs_vector_shape) != 1:
+            raise ValueError("obs_vector is not 1D vector")
+        if self.errcov_obs.shape[0] != obs_vector_shape[0]:
+            raise ValueError("obs_vector shape inconsistent with errcov_obs")
+        #
+        if forecast_vector_shape[0] != obs_vector_shape[0]:
+            raise ValueError(
+                "obs_vector shape inconsistent with forecast_vector"
+            )
+        #
+        # The one and only one inverse required! Wahoo!
+        print("Computing inverse of sum of error covariances")
+        inv_sum_of_errcovs = self.inv_operator(
+            self.errcov_forecast + self.errcov_obs
+        )
+        #
+        # Weights and error covariance if obs and forecast are uncorrelated
+        print("Computing kalman_gain")
+        self.kalman_gain_from_new_obs = self.multiply_operator(
+            self.errcov_forecast,
+            inv_sum_of_errcovs,
+        )
+        print("Computing forecast_wgt")
+        self.wgts_from_ar_forecast = (
+            self.one_maker(self.kalman_gain_from_new_obs.shape[0]) -
+            self.kalman_gain_from_new_obs
+        )
+        #
+        # Output weighted mean
+        print("Computing weighted mean")
+        self.wgt_mean = self.multiply_operator(
+            self.kalman_gain_from_new_obs,
+            (self.obs_vector - self.forecast_vector),
+        )
+        self.wgt_mean += self.forecast_vector
+        #
+        # Output error covariance
+        print("Computing updating uncertainities")
+        self.errcov = self.multiply_operator(
+            (
+                self.one_maker(inv_sum_of_errcovs.shape[0]) -
+                self.kalman_gain_from_new_obs
+            ),
+            self.errcov_forecast,
+        )
+        if self.cov_forecast_and_obs is not None:
+            w1w2cov = self.multiply_operator(
+                self.multiply_operator(
+                    self.kalman_gain_from_new_obs,
+                    self.wgts_from_ar_forecast,
+                ),
+                self.cov_forecast_and_obs,
+            )
+            self.errcov += self.multiply_operator(
+                2.0 * self.one_maker(obs_vector_shape[0]), w1w2cov
+            )
 
 
 class KalmanOutUncorrCorrSplit:
