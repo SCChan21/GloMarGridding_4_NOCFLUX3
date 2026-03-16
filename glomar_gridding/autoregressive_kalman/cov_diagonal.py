@@ -6,7 +6,11 @@ remove_diag_only_rows:
 - Purge them to form a smaller matrix and saves the matrix
 
 restore_diag_only_rows:
-- reverses the process, but you need to give a filler val
+- reverses the process, but one needs to give a filler value
+
+diag_and_nondiag_rows_subsampler:
+- get the subsampling matrix of diagonal and off-diagonal rows/columns
+- option to return the actual subsampled array
 """
 
 import numpy as np
@@ -19,20 +23,24 @@ def _more_than_one_element(
     row: np.ndarray, zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT
 ):
     """Check if 1D vector more than one non-zero element"""
-    return np.sum(row > zero_threshold) > 1
+    return np.sum(np.abs(row) > zero_threshold) > 1
 
 
 def remove_diag_only_rows(
     cov: np.ndarray,
-    zero_threshold: float = 1e-6,
+    zero_threshold: float = EFFECTIVELY_ZERO_DEFAULT,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Docstring for remove_diag_only_rows
+    Subsampled the covariance matrix by the removal of
+    diagonal-only elements. "Diagonal-only" elements are
+    defined according to the zero_threshold
 
     Parameters
     ----------
     cov: np.ndarray
         covariance matrix with possible diagonal only elements
+    zero_threshold: float
+        The near-zero threshold
 
     Returns
     -------
@@ -83,9 +91,9 @@ def restore_diag_only_rows(
     atol: float = 1e-6,
 ) -> np.ndarray:
     """
-    Re-expanding dense subsampled covariance matrix prior
-    the removal of diagonal-only elements, diagonal elements
-    are filled with diag_fillvalue
+    Re-expanding subsampled covariance matrix prior to
+    the removal of diagonal-only elements.
+    Diagonal elements are filled with diag_fillvalue.
 
     Parameters
     ----------
@@ -131,17 +139,39 @@ def diag_and_nondiag_rows_subsampler(
     return_subsampled_arr: bool = True,
 ) -> tuple[np.ndarray, None | np.ndarray, np.ndarray, None | np.ndarray]:
     """
-    Docstring for diag_and_nondiag_rows_subsampler
+    Get the subsampling matrices for rows and columns with
+    only diagonal-only elements and off-diagonal elements.
 
-    :param cov: covariance matrix with possible diagonal only elements
-    :type cov: np.ndarray
-    :return:
-        a tuple with four matrices
-        - d_off_diagonal: sampling matrix for the off-diagonal rows
-        - the_denser_parts: a (somewhat denser) subsampled by that matrix
-        - d_diagonal_only: the diagonal only rows
-        - isolated_diag_vals: vector with diagonal values of those rows
-    :rtype: tuple[ndarray, ndarray, ndarray, ndarray]
+    "Diagonal-only" elements are defined according to the zero_threshold.
+    Any rows and columns that do not satisfy the "diagonal-only" definition
+    is considered to have off-diagonal elements.
+
+    Returns a tuple with up to 4 matricies including the subsampling
+    matrices.
+
+    Parameters
+    ----------
+    cov: np.ndarray
+        covariance matrix with possible diagonal only elements
+    zero_threshold: float
+        The near-zero threshold
+    return_subsampled_arr: bool
+        Set to True if one wants the split subsampled covariances,
+        otherwise function will just return the subsampling
+        operator matrices
+
+    Returns
+    -------
+    d_off_diagonal: np.ndarray
+        sampling matrix operator for the off-diagonal rows
+    the_denser_parts: np.ndarray | None
+        a (somewhat denser) subsampled by that matrix
+        Set to None if return_subsampled_arr is False
+    d_diagonal_only: np.ndarray
+        sampling matrix operator for the diagonal only rows
+    isolated_diag_vals: np.ndarray | None
+        vector with diagonal values of those diagonal rows
+        Set to None if return_subsampled_arr is False
     """
     n_rows = cov.shape[0]
     print(f"{cov.shape = }")
