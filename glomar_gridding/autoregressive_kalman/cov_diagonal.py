@@ -83,14 +83,17 @@ def restore_diag_only_rows(
     atol: float = 1e-6,
 ) -> np.ndarray:
     """
-    Docstring for restore_diag_only_rows
+    Re-expanding dense subsampled covariance matrix prior
+    the removal of diagonal-only elements, diagonal elements
+    are filled with diag_fillvalue
 
     Parameters
     ----------
     trimmed_cov_arr: np.ndarray
         A trimmed numpy array that needs expaned
     D: np.ndarray
-        The subsampling array that did the original purge (see the_purge)
+        The subsampling array that did the original purge
+        (see remove_diag_only_rows)
     diag_fillvalue: float
         The diagonal fillvalue for restored rows and columns
     atol: float
