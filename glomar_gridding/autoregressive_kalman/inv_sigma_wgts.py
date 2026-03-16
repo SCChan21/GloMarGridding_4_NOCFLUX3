@@ -318,8 +318,8 @@ class KalmanOut:
         )
         print("Computing forecast_wgt")
         self.wgts_from_ar_forecast = (
-            self.one_maker(self.kalman_gain_from_new_obs.shape[0]) -
-            self.kalman_gain_from_new_obs
+            self.one_maker(self.kalman_gain_from_new_obs.shape[0])
+            - self.kalman_gain_from_new_obs
         )
         #
         # Output weighted mean
@@ -334,8 +334,8 @@ class KalmanOut:
         print("Computing updating uncertainities")
         self.errcov = self.multiply_operator(
             (
-                self.one_maker(inv_sum_of_errcovs.shape[0]) -
-                self.kalman_gain_from_new_obs
+                self.one_maker(inv_sum_of_errcovs.shape[0])
+                - self.kalman_gain_from_new_obs
             ),
             self.errcov_forecast,
         )
