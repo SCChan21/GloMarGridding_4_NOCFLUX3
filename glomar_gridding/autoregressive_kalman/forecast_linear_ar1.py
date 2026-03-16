@@ -31,16 +31,16 @@ class Autoregressive1Forecast:
 
         Parameters
         ----------
-        independent_var_t: np.ndarray
+        independent_var_t: numpy.ndarray
             1D vector of data for t=t
-        errcov_independent_var_t: np.ndarray
+        errcov_independent_var_t: numpy.ndarray
             2D error covariance for independent_var_t
-        lag_1_autocor_for_t_plus_1: np.ndarray
+        lag_1_autocor_for_t_plus_1: numpy.ndarray
             1D vector of lag-1 autocorrelation
-        climatology_mean: np.ndarray
+        climatology_mean: numpy.ndarray
             Climatological mean
             Shape should be same as independent_var_t
-        climatology_variance: np.ndarray
+        climatology_variance: numpy.ndarray
             Climatological variance,
             Shape should be same as independent_var_t
         climatology_variance_is_sdev: bool
@@ -119,22 +119,22 @@ def forecast_t_plus_1_old(
 
     Parameters
     ----------
-    independent_var_t: np.ndarray
+    independent_var_t: numpy.ndarray
         1D vector of independent variables for t
-    errcov_independent_var_t: np.ndarray
+    errcov_independent_var_t: numpy.ndarray
         2D errcov for independent_var_t
-    lag_1_autocor: np.ndarray
+    lag_1_autocor: numpy.ndarray
         1D vector of lag correlation
-    climatology_mean: np.ndarray
+    climatology_mean: numpy.ndarray
         1D climatological mean for independent_var
-    climatology_variance: np.ndarray
+    climatology_variance: numpy.ndarray
         climatology_variance: 1D climatological variance for independent_var
 
     Returns
     -------
-    forecast_t_plus_1_anomaly: np.ndarray
+    forecast_t_plus_1_anomaly: numpy.ndarray
         AR1 forecast
-    errcov: np.ndarray
+    errcov: numpy.ndarray
         The error covariance for the forecast
     """
     #
@@ -172,22 +172,22 @@ def forecast_t_plus_1(
 
     Parameters
     ----------
-    independent_var_t: np.ndarray
+    independent_var_t: numpy.ndarray
         1D vector of independent variables for t
-    errcov_independent_var_t: np.ndarray
+    errcov_independent_var_t: numpy.ndarray
         2D errcov for independent_var_t
-    lag_1_autocor: np.ndarray
+    lag_1_autocor: numpy.ndarray
         1D vector of lag correlation
-    climatology_mean: np.ndarray
+    climatology_mean: numpy.ndarray
         1D climatological mean for independent_var
-    climatology_variance: np.ndarray
+    climatology_variance: numpy.ndarray
         climatology_variance: 1D climatological variance for independent_var
 
     Returns
     -------
-    forecast_t_plus_1_anomaly: np.ndarray
+    forecast_t_plus_1_anomaly: numpy.ndarray
         AR1 forecast
-    errcov: np.ndarray
+    errcov: numpy.ndarray
         The error covariance for the forecast
     """
     #

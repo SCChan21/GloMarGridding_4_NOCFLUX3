@@ -37,7 +37,7 @@ def remove_diag_only_rows(
 
     Parameters
     ----------
-    cov: np.ndarray
+    cov: numpy.ndarray
         covariance matrix with possible diagonal only elements
     zero_threshold: float
         The near-zero threshold
@@ -97,9 +97,9 @@ def restore_diag_only_rows(
 
     Parameters
     ----------
-    trimmed_cov_arr: np.ndarray
+    trimmed_cov_arr: numpy.ndarray
         A trimmed numpy array that needs expaned
-    D: np.ndarray
+    D: numpy.ndarray
         The subsampling array that did the original purge
         (see remove_diag_only_rows)
     diag_fillvalue: float
@@ -110,7 +110,7 @@ def restore_diag_only_rows(
 
     Returns
     -------
-    ans: np.ndarray
+    ans: numpy.ndarray
         A larger (restored) covariance array
     """
     #
@@ -151,7 +151,7 @@ def diag_and_nondiag_rows_subsampler(
 
     Parameters
     ----------
-    cov: np.ndarray
+    cov: numpy.ndarray
         covariance matrix with possible diagonal only elements
     zero_threshold: float
         The near-zero threshold
@@ -162,14 +162,14 @@ def diag_and_nondiag_rows_subsampler(
 
     Returns
     -------
-    d_off_diagonal: np.ndarray
+    d_off_diagonal: numpy.ndarray
         sampling matrix operator for the off-diagonal rows
-    the_denser_parts: np.ndarray | None
+    the_denser_parts: numpy.ndarray | None
         a (somewhat denser) subsampled by that matrix
         Set to None if return_subsampled_arr is False
-    d_diagonal_only: np.ndarray
+    d_diagonal_only: numpy.ndarray
         sampling matrix operator for the diagonal only rows
-    isolated_diag_vals: np.ndarray | None
+    isolated_diag_vals: numpy.ndarray | None
         vector with diagonal values of those diagonal rows
         Set to None if return_subsampled_arr is False
     """

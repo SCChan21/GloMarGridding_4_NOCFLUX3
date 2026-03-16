@@ -17,12 +17,12 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    square_matrix: np.ndarray
+    square_matrix: numpy.ndarray
         The matrix that needs an inverse
 
     Returns
     -------
-    the_inverse: np.ndarray
+    the_inverse: numpy.ndarray
         The inverse
     """
     arr_shape = square_matrix.shape
@@ -33,7 +33,7 @@ def compute_inverse_via_solve(square_matrix: np.ndarray) -> np.ndarray:
     the_eye = np.eye(arr_shape[0])
     print(type(square_matrix))
     if isinstance(square_matrix, np.ndarray):
-        print("square_matrix is np.ndarray")
+        print("square_matrix is numpy.ndarray")
         the_inverse = linalg.solve(square_matrix, the_eye)
     elif isinstance(square_matrix, sp.sparse.sparray):
         print("sp.sparse.sparray detected, using toarray() method.")
@@ -88,15 +88,15 @@ class KalmanOut:
 
         Parameters
         ----------
-        forecast_vector: np.ndarray
+        forecast_vector: numpy.ndarray
             1D vector of forecasts
-        obs_vector: np.ndarray
+        obs_vector: numpy.ndarray
             1D vector of (gridded) observations
-        errcov_forecast: np.ndarray
+        errcov_forecast: numpy.ndarray
             2D matrix of errcov for forecast_vector
-        errcov_obs: np.ndarray
+        errcov_obs: numpy.ndarray
             2D matrix of errcov for obs_vector
-        cov_forecast_and_obs: np.ndarray | None
+        cov_forecast_and_obs: numpy.ndarray | None
             covariance between forecast & observations
             Set it to None if that is zero
         ez_covariances: bool
@@ -223,27 +223,27 @@ def compute_inv_variance_wgt_mean_kalman_old(
 
     Parameters
     ----------
-    forecast_vector: np.ndarray
+    forecast_vector: numpy.ndarray
         1D vector of forecasts
-    obs_vector: np.ndarray
+    obs_vector: numpy.ndarray
         1D vector of (gridded) observations
-    errcov_forecast: np.ndarray
+    errcov_forecast: numpy.ndarray
         2D matrix of error covariance for forecast_vector
-    errcov_forecast: np.ndarray
+    errcov_forecast: numpy.ndarray
         2D matrix of error covariance for obs_vector
-    cov_forecast_and_obs: np.ndarray | None
+    cov_forecast_and_obs: numpy.ndarray | None
         2D covariance between forecast & observations
         Set to None if zero
 
     Returns
     -------
-    wgt_mean: np.ndarray
+    wgt_mean: numpy.ndarray
         Posterior analysis
-    errcov: np.ndarray
+    errcov: numpy.ndarray
         Posterior error covariance
-    kalman_gain: np.ndarray
+    kalman_gain: numpy.ndarray
         Kalman gain (either a 2D matrix or 1D vector)
-    forecast_wgt: np.ndarray
+    forecast_wgt: numpy.ndarray
         Identity matrix or one vector minus Kalman gain
     """
     #
@@ -324,27 +324,27 @@ def compute_inv_variance_wgt_mean_kalman(
 
     Parameters
     ----------
-    forecast_vector: np.ndarray
+    forecast_vector: numpy.ndarray
         1D vector of forecasts
-    obs_vector: np.ndarray
+    obs_vector: numpy.ndarray
         1D vector of (gridded) observations
-    errcov_forecast: np.ndarray
+    errcov_forecast: numpy.ndarray
         2D matrix of error covariance for forecast_vector
-    errcov_forecast: np.ndarray
+    errcov_forecast: numpy.ndarray
         2D matrix of error covariance for obs_vector
-    cov_forecast_and_obs: np.ndarray | None
+    cov_forecast_and_obs: numpy.ndarray | None
         2D covariance between forecast & observations
         Set to None if zero
 
     Returns
     -------
-    wgt_mean: np.ndarray
+    wgt_mean: numpy.ndarray
         Posterior analysis
-    errcov: np.ndarray
+    errcov: numpy.ndarray
         Posterior error covariance
-    kalman_gain: np.ndarray
+    kalman_gain: numpy.ndarray
         Kalman gain (either a 2D matrix or 1D vector)
-    forecast_wgt: np.ndarray
+    forecast_wgt: numpy.ndarray
         Identity matrix or one vector minus Kalman gain
     """
     #
@@ -408,7 +408,7 @@ def small_elements_2_zero_and_sparse(
 
     Parameters
     ----------
-    arr: np.ndarray
+    arr: numpy.ndarray
         Array to be manipulated
     sparse_threshold: float
          threshold in which values less than to be to set 0
@@ -421,7 +421,7 @@ def small_elements_2_zero_and_sparse(
 
     Returns
     -------
-    arr: np.ndarray | sp.sparse.sparray
+    arr: numpy.ndarray | scipy.sparse.sparray
         Modified sparse array
     """
     if len(arr.shape) != 2:
@@ -459,18 +459,18 @@ class KalmanOutUncorrCorrSplit:
 
         Parameters
         ----------
-        forecast_vector: np.ndarray
+        forecast_vector: numpy.ndarray
             1D vector of forecasts
-        obs_vector: np.ndarray
+        obs_vector: numpy.ndarray
             1D vector of (gridded) observations
-        errcov_forecast: np.ndarray
+        errcov_forecast: numpy.ndarray
             2D matrix of errcov for forecast_vector
-        errcov_obs: np.ndarray
+        errcov_obs: numpy.ndarray
             2D matrix of errcov for obs_vector
-        cov_forecast_and_obs: np.ndarray | None
+        cov_forecast_and_obs: numpy.ndarray | None
             covariance between forecast & observations
             Set it to None if that is zero
-        arr_2_decide_if_points_are_isolated: np.ndarray
+        arr_2_decide_if_points_are_isolated: numpy.ndarray
             The matrix (usually a covariance) to determine
             if the point is diagonally isolated. This can
             be the prior spatial covariance.
