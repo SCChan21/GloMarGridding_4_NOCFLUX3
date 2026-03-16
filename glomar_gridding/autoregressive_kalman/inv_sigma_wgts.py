@@ -4,7 +4,7 @@ import numpy as np
 from numpy import linalg
 import scipy as sp
 
-from . import cov_diagonal as cd
+from glomar_gridding.autoregressive_kalman import cov_diagonal as cd
 
 # EFFECTIVELY_ZERO_VAR_DEFAULT = 0.1 ** 2
 EFFECTIVELY_ZERO_VAR_DEFAULT = 1e-6
