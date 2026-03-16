@@ -14,27 +14,7 @@ class Autoregressive1Forecast:
     """
     Class to compute AR1 forecast
 
-    :param independent_var_t: 1D vector of data for t=t
-    :type independent_var_t: np.ndarray
-
-    :param errcov_independent_var_t: 2D error covariance for independent_var_t
-    :type errcov_independent_var_t: np.ndarray
-
-    :param lag_1_autocor_for_t_plus_1: 1D vector of lag-1 autocorrelation
-    :type lag_1_autocor_for_t_plus_1: np.ndarray
-
-    :param climatology_mean: climatological mean,
-        shape == independent_var_t
-    :type climatology_mean: np.ndarray
-
-    :param climatology_variance: climatological variance,
-        shape == independent_var_t
-    :type climatology_mean: np.ndarray
-
-    :param climatology_variance_is_sdev: Flag indicating if
-        climatology_variance is variance or standard deviation
-        default False, climatology_variance is variance (like SST**2)
-    :type climatology_variance_is_sdev: bool
+    Compute Lag-1 autoregressive forecast as a prior for Kalman filter.
     """
 
     def __init__(
@@ -46,6 +26,29 @@ class Autoregressive1Forecast:
         climatology_variance: np.ndarray,
         climatology_variance_is_sdev: bool = False,
     ):
+        """
+        __init__ for Autoregressive1Forecast class
+
+        Parameters
+        ----------
+        independent_var_t: np.ndarray
+            1D vector of data for t=t
+        errcov_independent_var_t: np.ndarray
+            2D error covariance for independent_var_t
+        lag_1_autocor_for_t_plus_1: np.ndarray
+            1D vector of lag-1 autocorrelation
+        climatology_mean: np.ndarray
+            Climatological mean
+            Shape should be same as independent_var_t
+        climatology_variance: np.ndarray
+            Climatological variance,
+            Shape should be same as independent_var_t
+        climatology_variance_is_sdev: bool
+            Flag indicating if climatology_variance is
+            variance or standard deviation.
+            Default False, climatology_variance is variance (like SST**2)
+            True if standard deviation
+        """
         #
         self.independent_var_t = independent_var_t
         self.errcov_independent_var_t = errcov_independent_var_t
@@ -80,8 +83,8 @@ class Autoregressive1Forecast:
             != self.errcov_independent_var_t.shape[0]
         ):  # noqa: E501
             raise ValueError(
-                "independent_var_t shape inconsistent with errcov_independent_var_t"
-            )  # noqa: E501
+                "independent_var_t shape inconsistent with errcov_independent_var_t"  # noqa: E501
+            )
         if self.independent_var_t.shape[0] != self.climatology_mean.shape[0]:
             raise ValueError(
                 "independent_var_t shape inconsistent with climatology_mean"
@@ -112,26 +115,27 @@ def forecast_t_plus_1_old(
     """
     Compute AR1 forecast and estimate uncertainities
 
-    🐢-speed
-    Uses more matrix multiplication aka "@" and np.diag
+    🐢-speed; uses more matrix multiplication aka "@" and np.diag
 
-    :param independent_var_t: 1D vector of independent variables for t
-    :type independent_var_t: np.ndarray
+    Parameters
+    ----------
+    independent_var_t: np.ndarray
+        1D vector of independent variables for t
+    errcov_independent_var_t: np.ndarray
+        2D errcov for independent_var_t
+    lag_1_autocor: np.ndarray
+        1D vector of lag correlation
+    climatology_mean: np.ndarray
+        1D climatological mean for independent_var
+    climatology_variance: np.ndarray
+        climatology_variance: 1D climatological variance for independent_var
 
-    :param errcov_independent_var_t: 2D errcov for independent_var_t
-    :type errcov_independent_var_t: np.ndarray
-
-    :param lag_1_autocor: 1D vector of lag correlation
-    :type lag_1_autocor: np.ndarray
-
-    :param climatology_mean: 1D climatological mean for independent_var
-    :type climatology_mean: np.ndarray
-
-    :param climatology_variance: 1D climatological variance for independent_var
-    :type climatology_variance: np.ndarray
-
-    :returns: list with AR1 forecast and error covariance
-    :rtype: list
+    Returns
+    -------
+    forecast_t_plus_1_anomaly: np.ndarray
+        AR1 forecast
+    errcov: np.ndarray
+        The error covariance for the forecast
     """
     #
     ar1_matrix = np.diag(lag_1_autocor)
@@ -164,25 +168,27 @@ def forecast_t_plus_1(
     Speed:
     https://stackoverflow.com/questions/44388358/python-numpy-matrix-multiplication-with-one-diagonal-matrix
 
-    This version uses *, less np.diag, and is usually faster?
+    This version uses *, less np.diag, and should be faster.
 
-    :param independent_var_t: 1D vector of independent variables for t
-    :type independent_var_t: np.ndarray
+    Parameters
+    ----------
+    independent_var_t: np.ndarray
+        1D vector of independent variables for t
+    errcov_independent_var_t: np.ndarray
+        2D errcov for independent_var_t
+    lag_1_autocor: np.ndarray
+        1D vector of lag correlation
+    climatology_mean: np.ndarray
+        1D climatological mean for independent_var
+    climatology_variance: np.ndarray
+        climatology_variance: 1D climatological variance for independent_var
 
-    :param errcov_independent_var_t: 2D errcov for independent_var_t
-    :type errcov_independent_var_t: np.ndarray
-
-    :param lag_1_autocor: 1D vector of lag correlation
-    :type lag_1_autocor: np.ndarray
-
-    :param climatology_mean: 1D climatological mean for independent_var
-    :type climatology_mean: np.ndarray
-
-    :param climatology_variance: 1D climatological variance for independent_var
-    :type climatology_variance: np.ndarray
-
-    :returns: list with AR1 forecast and error covariance
-    :rtype: list
+    Returns
+    -------
+    forecast_t_plus_1_anomaly: np.ndarray
+        AR1 forecast
+    errcov: np.ndarray
+        The error covariance for the forecast
     """
     #
     lag_1_autocor_squared = lag_1_autocor * lag_1_autocor
