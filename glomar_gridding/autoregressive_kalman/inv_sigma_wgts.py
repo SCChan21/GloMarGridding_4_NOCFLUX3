@@ -361,34 +361,32 @@ class KalmanOutUncorrCorrSplit:
         obs_vector_d = self.d_diagonal_only @ obs_vector
         errcov_forecast_d = (
             self.d_diagonal_only @ errcov_forecast @ self.d_diagonal_only.T
-        )  # noqa: E501
+        )
         errcov_obs_d = (
             self.d_diagonal_only @ errcov_obs @ self.d_diagonal_only.T
-        )  # noqa: E501
+        )
+        cov_forecast_and_obs_d = None
         if cov_forecast_and_obs is not None:
             cov_forecast_and_obs_d = (
                 self.d_diagonal_only
                 @ cov_forecast_and_obs
                 @ self.d_diagonal_only.T
-            )  # noqa: E501
+            )
             cov_forecast_and_obs_d = np.diag(cov_forecast_and_obs_d)
-        else:
-            cov_forecast_and_obs_d = None
         #
         forecast_vector_c = self.d_off_diagonal @ forecast_vector
         obs_vector_c = self.d_off_diagonal @ obs_vector
         errcov_forecast_c = (
             self.d_off_diagonal @ errcov_forecast @ self.d_off_diagonal.T
-        )  # noqa: E501
+        )
         errcov_obs_c = self.d_off_diagonal @ errcov_obs @ self.d_off_diagonal.T
+        cov_forecast_and_obs_c = None
         if cov_forecast_and_obs is not None:
             cov_forecast_and_obs_c = (
                 self.d_off_diagonal
                 @ cov_forecast_and_obs
                 @ self.d_off_diagonal.T
-            )  # noqa: E501
-        else:
-            cov_forecast_and_obs_c = None
+            )
         #
         self.uncorr_part = KalmanOut(
             forecast_vector_d,
