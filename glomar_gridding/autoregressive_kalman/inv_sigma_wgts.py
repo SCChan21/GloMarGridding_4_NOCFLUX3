@@ -185,7 +185,7 @@ class KalmanOut:
 
         This uses a form that requires only ONE matrix inverses
         and reciporcals (good!) and is more commonly seen in
-        Kalman Fiter guides (including the form uses in Wikipedia)
+        Kalman Filter guides (including the form uses in Wikipedia)
         https://en.wikipedia.org/wiki/Kalman_filter
         Probably everyone hate matrix inverses... (for good reason)
 
@@ -275,7 +275,7 @@ class KalmanOut:
         self.wgt_mean += self.forecast_vector
         #
         # Output error covariance
-        print("Computing updating uncertainities")
+        print("Computing updating uncertainties")
         self.errcov = self.multiply_operator(
             (
                 self.one_maker(self.errcov_obs.shape[0])

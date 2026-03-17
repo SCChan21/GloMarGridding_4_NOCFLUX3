@@ -44,9 +44,10 @@ def remove_diag_only_rows(
 
     Returns
     -------
-    ans: tuple[ndarray, ndarray]
-        - a new covariance without those diagonal-only elements
-        - the sampling matrix that generates it
+    new_cov_arr : numpy.ndarray
+        a new covariance without those diagonal-only elements
+    D: numpy.ndarray
+        the subsampling matrix that generates new_cor_arr
     """
     n_rows = cov.shape[0]
     print(f"{cov.shape = }")
@@ -98,7 +99,7 @@ def restore_diag_only_rows(
     Parameters
     ----------
     trimmed_cov_arr: numpy.ndarray
-        A trimmed numpy array that needs expaned
+        A trimmed numpy array that needs expanded
     D: numpy.ndarray
         The subsampling array that did the original purge
         (see remove_diag_only_rows)
@@ -110,7 +111,7 @@ def restore_diag_only_rows(
 
     Returns
     -------
-    ans: numpy.ndarray
+    new_cov_arr: numpy.ndarray
         A larger (restored) covariance array
     """
     print(f"{trimmed_cov_arr.shape = }")
@@ -145,7 +146,7 @@ def diag_and_nondiag_rows_subsampler(
     Any rows and columns that do not satisfy the "diagonal-only" definition
     is considered to have off-diagonal elements.
 
-    Returns a tuple with up to 4 matricies including the subsampling
+    Returns a tuple with up to 4 matrices including the subsampling
     matrices.
 
     Parameters

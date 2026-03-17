@@ -1,6 +1,6 @@
 """
 Conduct local AR1 forecast of uncertain data
-output new uncertainities
+output new uncertainties
 """
 
 import numpy as np
@@ -92,7 +92,7 @@ class Autoregressive1Forecast:
 
     def compute_forecast(self):
         """
-        Compute AR1 forecast and estimate uncertainities
+        Compute AR1 forecast and estimate uncertainties
 
         Speed:
         https://stackoverflow.com/questions/44388358/python-numpy-matrix-multiplication-with-one-diagonal-matrix
@@ -127,7 +127,7 @@ class Autoregressive1Forecast:
         self.forecast = (self.lag_1_autocor * diff_with_climatology.T).T
         self.forecast += self.climatology_mean
         #
-        print("Computing uncertainities")
+        print("Computing uncertainties")
         climvar_mult = (
             np.ones_like(lag_1_autocor_squared) - lag_1_autocor_squared
         )
