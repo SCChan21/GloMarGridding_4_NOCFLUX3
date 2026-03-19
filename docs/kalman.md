@@ -4,17 +4,17 @@
 
 Most marine datasets are what we called a 2DVAR analysis - the current analysis is based on the present observations only (2D as in x, y; in contrast of 3DVAR seen in historical weather forecasting literature: x, y, z).
 
-This limits the amount of the observations one can used, resulting in higher uncertainty. In many cases, this is mitigated by temporally aggregating the observations (like doing monthly analysis instead of daily analysis) or blending multiple input sources (like high-level remote sensing data product). Sometimes one is stuck with such spotty observations; like one really wants a daily analysis based purely on daily observations.
+This limits the amount of the observations one can used, resulting in higher uncertainty. In many cases, this is mitigated by temporally aggregating the observations (like doing monthly analysis instead of daily analysis) or blending multiple input sources (like high-level remote sensing data product). Sometimes one is stuck with such spotty observations; like one really wants a daily analysis based purely on daily observations. How we can reduce the uncertainties?
 
 This leads to the introduction of time dimension into the analysis. This is what we called 4DVAR (x, y, z, t) weather forecasting (or 3DVAR if one is dealing with only surface variables - x, y, t).
 
-A popular way to do so is via Kalman Filter -- a recursive method that blends a forecast to the present state (aka prior) with present observations, resulting a posterior analysis that is more accurate with just the forecast or the observations. The method is widely used in autopilot, navigation, and positioning; they are in every satellite navigation device and flight cockpit. Nowadays, it is found in Earth sciences in particular with weather forecasts. Kalman filter has been used in producing more accurate weather forecasts and historical reanalysis by the ECWMF and the UK Met Office (https://www.met.reading.ac.uk/~darc/training/ecmwf_collaborative_training/EnKF_AFowler.pdf).
+A popular way to do so is via Kalman Filter -- a recursive method that blends a forecast to the present state (aka prior) with present observations, resulting a posterior analysis that is more accurate with just the forecast or the observations. The method is widely used in autopilot and positioning. For Earth sciences, they are often associated with numerical weather prediction and reanalyses. Kalman filter has been used in producing more accurate weather forecasts and historical reanalysis by the ECWMF and the UK Met Office (https://www.met.reading.ac.uk/~darc/training/ecmwf_collaborative_training/EnKF_AFowler.pdf).
 
 # Producing the prior using a simple autoregressive statistical model
 
-This lead to the question how would one produce a forecast priors. The priors used in weather forecasts are based on numerical weather prediction. Such kind of dynamical modelling is generally not used in producing gridded observations, but there are exceptions (https://soda.umd.edu/).
+This lead to the question how would one produce a forecast priors. The priors/first guesses are often based on outputs of dynamical models like in numerical weather prediction and reanalysis; even in satnav or autopilot, simple dynamics are included (dead-reckoning along roads). Such dynamics are often not part of the development of the gridded observations; GlomarGridding is a package for statistical modelling only.
 
-A simple statistical approach is implemented here to produce such forecast, basing on the simple idea is that current condition (described by the variable `a` below) will generally tend toward climatology (`E(a)`) (). The simplest way to model that behavior is the local 1st order autoregressive model, in which the expected value for `a(t)` is a linear function of the observed lag-1 correlation Phi and its pervious observed value (`a(t-1)`) , resulting in exponential relaxation toward `E(a)`, plus a normally distributed uncertainty epsilon:
+A simple statistical approach is implemented here to produce such forecast, basing on the simple idea is that current condition (described by the variable `a` below) will generally tend toward climatology (`E(a)`). The simplest way to model that behavior is the local 1st order autoregressive model, in which the expected value for `a(t)` is a linear function of the observed lag-1 correlation Phi and its pervious observed value (`a(t-1)`) , resulting in exponential relaxation toward `E(a)`, plus a normally distributed uncertainty epsilon:
 
 $$
 a_{t} = \Phi (a_{t-1} - E(a)) + \epsilon
@@ -32,7 +32,7 @@ For the purpose of this exercise, uncertainty for the current observations is th
 
 # Uncertainty weighted average (Kalman Filter)
 
-Kalman Filter, in its heart, is a weighted average -- an average for two input streams: the prior/first-guess/forecast what the current state probably be, and what the most recent observations say. The weights are determined only by uncertainties. In simple English, the weight favours the more certain input stream.
+Kalman Filter, in its heart, is a weighted average -- an average for two input streams: the prior/first-guess/forecast what the current state probably be, and what the most recent observations say. The weights are determined only by uncertainties as neither the first-guess and observations are perfect. In simple English, produce a better observations by taking multiple sources, weighting in favour the more accurate one.
 
 Let say the uncertainty of the forecast and observations can be described by two different uni- or multi-variate zero-averaged normal distribution with some scalar variance / error covariance matrix.
 
@@ -82,7 +82,7 @@ If observations are not on the same grid as the forecast, additional mapping mul
 
 The workflow here will be:
 
-1. produce an initial t=0 analysis
+1. Produce an initial t=0 analysis
 2. Do a t+1 forecast
 3. Krige the observations for t+1
 4. Blend the forecast with Kriging result using Kalman filter
