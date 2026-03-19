@@ -80,7 +80,65 @@ $$
 
 If observations are not on the same grid as the forecast, additional mapping multiplications are needed; that leads the usual form one will see in text books or Wikipedia.
 
-## Code and usage
+The workflow here will be:
 
+1. produce an initial t=0 analysis
+2. Do a t+1 forecast
+3. Krige the observations for t+1
+4. Blend the forecast with Kriging result using Kalman filter
+5. Go back to step 2 using the posterior analysis and error covariance
 
+# Code and usage
 
+The main processing involve two Python code
+
+- `forecast_linear_ar1.py`
+- `inv_sigma_wgts.py`
+
+There is a helping code file called `cov_diagonal.py` which can be used to separate the analysis between we expect to not to be spatially correlated with bits that are spatially correlated.
+
+For the all the main classes, the computation uses a method that is called `compute_XXXXX`.
+
+## `forecast_linear_ar1.py`
+
+This does the local 1st-order linear autoregressive forecast.
+
+There is only one class in the code. All the processing (methods) needed are within the class.
+
+### Autoregressive1Forecast
+
+- `independent_var_t`: Kriging outputs that serves as inputs to this class
+- `errcov_independent_var_t`: The (full) output Kriging covariance. Class methods in `kriging.py` and `stochastic` have been updated to make that possible.
+- `lag_1_autocor`: A 1D vector that has same shape as `independent_var_t` that gives lag-1 correlation for the same location.
+- `climatology_mean`: The climatological mean for `independent_var_t`; while `independent_var_t` is usually already been turned to anomalies (0-mean relative to some arbitrary common baseline), this allows you specify a new mean that is the current quasi-stationary one (i.e. global warming makes the arbitrary common baseline for variables like temperature or specific humidity inaccurate).
+- `climatology_variance`: The climatological variance
+- `climatology_variance_is_sdev`: `climatology_variance` is actually standard deviation. This defaults to False. Default behavior expect sigma-squared as this is consistent with the behavior of `errcov_independent_var_t`.
+
+.. autoclass:: glomar_gridding.autoregressive_kalman.forecast_linear_ar1.Autoregressive1Forecast
+
+## `inv_sigma_wgts.py`
+
+For Kalman Filtering, using inverse error covariance weighting (`sigma`) weights.
+
+### KalmanOut
+
+Kalman filtering if observations and forecast are on the same grid. This class and its computation is general and is left open for different types of observations and prior forecast as long as the grid is the same.
+
+- `forecast_vector`: The vector of forecasts, such as outputs from `Autoregressive1Forecast`.
+- `obs_vector`: The vector of observations, such as outputs from `OrdinaryKriging`.
+- `errcov_forecast`: Error covariance of the forecast/prior - for the purpose here, this will be the error covariance from `Autoregressive1Forecast`, but future development may render that obsolete.
+- `errcov_obs`: Error covariance of the observations - normally, this will be the error covariance from the Kriging analysis.
+- `cov_forecast_and_obs`: The covariance between the forecast and observations. 
+- `ez_covariances`: This disables the use of off-diagonal/correlated components of the error covariances. 
+
+.. autoclass:: glomar_gridding.autoregressive_kalman.inv_sigma_wgts.KalmanOut
+
+### KalmanOutUncorrCorrSplit
+
+For most part, this works the same way as KalmanOut, but it is possible to specify which bit one wants to use `ez_covariances` mode in which bit one does not. In the past, GlomarGridding Kriging classes have often been used to produce global outputs including into terrain that needed to be treated differently (sea -> sea ice/land, land -> sea). This can be used to filter such results.
+
+The only addition kwarg is:
+
+- `arr_2_decide_if_points_are_isolated`: this works with the type of covariances produced by ellipse classes which allows expanding covariances globally. If one passes the global spatial covariance into this, methods within `KalmanOutUncorrCorrSplit` auto-detects which rows/columns are filled in, and conducts Kalman-Filtering separately using the `ez_covariances` mode.
+
+.. autoclass:: glomar_gridding.autoregressive_kalman.inv_sigma_wgts.KalmanOutUncorrCorrSplit
